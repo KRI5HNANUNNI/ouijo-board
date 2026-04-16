@@ -75,7 +75,7 @@
     <div id="admin-controls">
         <div class="header">
             <h3>Diagnostic Console - System #8822</h3>
-            <p>Status: <span class="status">Connected via Firebase</span></p>
+            <p>Status: <span class="status" id="conn-status" style="color:orange;">Connecting to Board...</span></p>
         </div>
 
         <div class="log-container" id="log">
@@ -99,35 +99,18 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (Modular) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        // ==========================================
-        // PASTE YOUR FIREBASE CONFIG HERE:
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "PLACEHOLDER",
-            authDomain: "PLACEHOLDER",
-            databaseURL: "PLACEHOLDER",
-            projectId: "PLACEHOLDER",
-            storageBucket: "PLACEHOLDER",
-            messagingSenderId: "PLACEHOLDER",
-            appId: "PLACEHOLDER"
-        };
-
-        let db;
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getDatabase(app);
-        } catch(e) { console.error("Firebase not configured"); }
+    <!-- PeerJS -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script>
+        let peer;
+        let boardConn;
 
         window.checkAuth = () => {
             const code = document.getElementById('passcode').value;
-            if(code === 'spirit99') { // Replace with your desired passcode
+            if(code === 'spirit99') { 
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('admin-controls').style.display = 'block';
+                initPeer();
             } else {
                 alert("Invalid Key");
             }
@@ -139,12 +122,35 @@
             l.scrollTop = l.scrollHeight;
         };
 
+        const initPeer = () => {
+            peer = new Peer(); 
+            peer.on('open', (id) => {
+                log(`Auth successful. Target: kri5hnanunni-ouija-board-99`);
+                boardConn = peer.connect('kri5hnanunni-ouija-board-99');
+                
+                boardConn.on('open', () => {
+                    document.getElementById('conn-status').innerText = 'Connected via DirectPeer';
+                    document.getElementById('conn-status').style.color = 'green';
+                    log("Link established. Ready.");
+                });
+
+                boardConn.on('close', () => {
+                    document.getElementById('conn-status').innerText = 'Disconnected';
+                    document.getElementById('conn-status').style.color = 'red';
+                    log("Target board disconnected.");
+                });
+                
+                boardConn.on('error', (err) => {
+                    log("Connection error: " + err);
+                });
+            });
+        };
+
         window.sendCommand = () => {
             const word = document.getElementById('target-word').value.trim().toUpperCase();
-            if(!word || !db) return;
+            if(!word || !boardConn) return;
             
-            const commandRef = ref(db, 'ouija_session/current_word');
-            set(commandRef, {
+            boardConn.send({
                 text: word,
                 timestamp: Date.now()
             });
@@ -158,9 +164,8 @@
         };
 
         window.clearCommands = () => {
-            if(!db) return;
-            const commandRef = ref(db, 'ouija_session/current_word');
-            set(commandRef, null);
+            if(!boardConn) return;
+            boardConn.send(null); // Send reset signal
             log("State Cleared.");
         };
 
