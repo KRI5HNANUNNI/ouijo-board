@@ -136,9 +136,10 @@
         <div class="debug-info" id="debug-txt">ICE: Checking...</div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
-        const socket = io();
+        // Connect to the permanent Render Server
+        const socket = io('https://ouijo-board.onrender.com');
         let currentRoom = null;
 
         const log = (msg) => {

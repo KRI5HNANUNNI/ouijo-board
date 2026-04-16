@@ -290,12 +290,12 @@
 
     <div id="message-display"></div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
         const roomPin = Math.floor(1000 + Math.random() * 9000).toString();
         
-        // Connect to our custom Socket.io server (uses same host/port if served together)
-        const socket = io();
+        // Connect to the permanent Render Server
+        const socket = io('https://ouijo-board.onrender.com');
 
         socket.on('connect', () => {
             document.getElementById('room-code').innerText = `Room Code: ${roomPin} (Connected to Custom Server)`;
