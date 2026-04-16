@@ -553,10 +553,8 @@
     <script>
         const roomPin = Math.floor(1000 + Math.random() * 9000).toString();
         
-        // Connect to the server - try current origin, fallback to Render
-        const socket = (window.location.protocol.startsWith('http')) 
-            ? io() 
-            : io('https://ouijo-board.onrender.com');
+        // Connect to the server
+        const socket = io();
 
         socket.on('connect', () => {
             document.getElementById('room-code').innerText = `Room Code: ${roomPin} (Connected to Custom Server)`;

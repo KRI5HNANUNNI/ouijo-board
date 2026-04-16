@@ -355,10 +355,8 @@
 
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
-        // Connect to the server - try current origin, fallback to Render
-        const socket = (window.location.protocol.startsWith('http')) 
-            ? io() 
-            : io('https://ouijo-board.onrender.com');
+        // Connect to the server
+        const socket = io();
         let selectedPin = null;
 
         socket.on('connect', () => {
