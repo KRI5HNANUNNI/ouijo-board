@@ -668,7 +668,7 @@
             let targets = {
                 'YES': {x: 220, y: 125},
                 'NO': {x: 780, y: 125},
-                'GOODBYE': {x: 500, y: 545}
+                'GOODBYE': {x: 500, y: 550}
             };
             
             // Function to calculate exact point on an SVG path safely
@@ -682,23 +682,23 @@
             // A-N Mapping (14 characters, center 50%) -> roughly 15% to 85% of path
             const amArr = "ABCDEFGHIJKLMN".split("");
             amArr.forEach((c, i) => {
-                let pct = 0.22 + (0.56 / 13) * i; 
+                let pct = 0.18 + (0.64 / 13) * i; 
                 let pt = getPathPoint('curveAM', pct);
-                targets[c] = {x: pt.x, y: pt.y - 35}; 
+                targets[c] = {x: pt.x, y: pt.y + 5}; 
             });
 
             const nzArr = "OPQRSTUVWXYZ".split("");
             nzArr.forEach((c, i) => {
-                let pct = 0.18 + (0.64 / 11) * i;
+                let pct = 0.12 + (0.76 / 11) * i;
                 let pt = getPathPoint('curveNZ', pct);
-                targets[c] = {x: pt.x, y: pt.y - 35};
+                targets[c] = {x: pt.x, y: pt.y + 5};
             });
             
             const numArr = "1234567890".split("");
             numArr.forEach((c, i) => {
-                let pct = 0.25 + (0.50 / 9) * i; 
+                let pct = 0.14 + (0.72 / 9) * i; 
                 let pt = getPathPoint('line10', pct);
-                targets[c] = {x: pt.x, y: pt.y - 35};
+                targets[c] = {x: pt.x, y: pt.y + 5};
             });
 
             // Animate Planchette to Target
@@ -715,10 +715,10 @@
 
                 planchette.classList.add('auto-move');
                 
-                // Random organic offset
-                targetX += (Math.random() - 0.5) * 8;
-                targetY += (Math.random() - 0.5) * 8;
-                let rotation = (Math.random() - 0.5) * 15;
+                // Random organic offset - reduced for accuracy
+                targetX += (Math.random() - 0.5) * 3;
+                targetY += (Math.random() - 0.5) * 3;
+                let rotation = (Math.random() - 0.5) * 12;
 
                 planchette.style.left = `${targetX}px`;
                 planchette.style.top = `${targetY}px`;
