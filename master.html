@@ -124,30 +124,52 @@
         }
 
         .pad-container {
-            aspect-ratio: 1;
-            background: rgba(0, 0, 0, 0.5);
+            aspect-ratio: 1000 / 650;
+            background: rgba(0, 0, 0, 0.7);
+            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('wood_bg.png');
+            background-size: cover;
             border: 2px solid var(--gold);
             border-radius: 15px;
             position: relative;
             overflow: hidden;
             touch-action: none;
+            box-shadow: inset 0 0 30px #000;
         }
 
         #live-pad {
             width: 100%;
             height: 100%;
+            position: relative;
+        }
+
+        #live-pad svg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 90%;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        #live-pad text, #live-pad path {
+            fill: #fff !important;
+            stroke: #fff !important;
         }
 
         #cursor {
             position: absolute;
-            width: 20px;
-            height: 20px;
-            background: var(--gold);
+            width: 25px;
+            height: 25px;
+            background: rgba(212, 175, 55, 0.2);
+            border: 2px solid var(--gold);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
             box-shadow: 0 0 15px var(--gold);
             display: none;
+            z-index: 10;
         }
 
         .input-group {
@@ -243,7 +265,33 @@
                 <div id="target-label" style="color: var(--gold); font-size: 0.8rem; margin-bottom: 10px;">TARGET: NONE SELECTED</div>
                 
                 <div class="pad-container">
-                    <div id="live-pad"></div>
+                    <div id="live-pad">
+                        <svg viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <path id="curveAM" d="M 120 300 A 450 300 0 0 1 880 300" fill="transparent" />
+                                <path id="curveNZ" d="M 220 400 A 350 200 0 0 1 780 400" fill="transparent" />
+                                <path id="line10" d="M 150 480 L 850 480" fill="transparent" />
+                                <path id="curveGoodbye" d="M 250 580 A 250 50 0 0 0 750 580" fill="transparent"/>
+                            </defs>
+                            <g opacity="0.8">
+                                <text x="500" y="90" text-anchor="middle" font-size="60" font-family="serif" font-weight="bold">OUIJA</text>
+                                <text x="220" y="160" text-anchor="middle" font-size="40" font-family="serif" font-weight="bold">YES</text>
+                                <text x="780" y="160" text-anchor="middle" font-size="40" font-family="serif" font-weight="bold">NO</text>
+                                <text font-size="45" text-anchor="middle" font-family="serif" font-weight="bold">
+                                    <textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath>
+                                </text>
+                                <text font-size="45" text-anchor="middle" font-family="serif" font-weight="bold">
+                                    <textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath>
+                                </text>
+                                <text font-size="45" text-anchor="middle" font-family="serif" font-weight="bold">
+                                    <textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath>
+                                </text>
+                                <text font-size="40" text-anchor="middle" font-family="serif" font-weight="bold">
+                                    <textPath href="#curveGoodbye" startOffset="50%">GOODBYE</textPath>
+                                </text>
+                            </g>
+                        </svg>
+                    </div>
                     <div id="cursor"></div>
                 </div>
 
