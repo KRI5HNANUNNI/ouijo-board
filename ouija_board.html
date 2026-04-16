@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Advanced Mystical Ouija Board</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #030200; /* Deep dark void */
+            overflow: hidden;
+            font-family: 'Cinzel Decorative', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none; /* Prevent pinch/zoom/scroll on mobile */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #board-container {
+            position: relative;
+            width: 100%;
+            max-width: 100vw;
+            height: auto;
+            max-height: 100vh;
+            aspect-ratio: 1000 / 650; /* Fits the SVG viewBox perfectly */
+            background-image: url('wood_bg.png');
+            background-size: cover;
+            background-position: center;
+            box-shadow: inset 0 0 120px rgba(0,0,0,0.95), 0 0 80px rgba(0,0,0,0.8);
+            border: 3px solid #1a0f05;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Enhances the dark, mysterious corners */
+        #board-container::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            box-shadow: inset 0 0 200px #000;
+            pointer-events: none;
+            border-radius: 17px;
+        }
+
+        #ouija-board {
+            width: 95%;
+            height: 95%;
+            filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.8));
+            z-index: 1;
+        }
+
+        .title {
+            font-size: 70px;
+            fill: #1a0f05;
+            font-weight: bold;
+            letter-spacing: 25px;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.05), -1px -1px 0px rgba(0,0,0,0.9);
+        }
+
+        .word {
+            font-size: 55px;
+            fill: #1a0f05;
+            font-weight: bold;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.05), -1px -1px 0px rgba(0,0,0,0.9);
+            cursor: pointer;
+            transition: fill 0.3s, filter 0.3s;
+        }
+
+        .word:hover {
+            fill: #ffb84d; /* Glowing orange text on hover */
+            filter: drop-shadow(0 0 8px rgba(255,184,77,0.8));
+        }
+
+        .alphabet, .numbers {
+            font-size: 45px;
+            fill: #1a0f05;
+            font-weight: bold;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.05), -1px -1px 0px rgba(0,0,0,0.9);
+        }
+
+        .icon, .icon path, .icon circle {
+            fill: #1a0f05;
+            stroke: #1a0f05;
+            filter: drop-shadow(-1px -1px 0px rgba(0,0,0,0.9)) drop-shadow(1px 1px 0px rgba(255,255,255,0.05));
+        }
+
+        #planchette {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 14%;
+            height: 27%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            z-index: 10;
+            transition: transform 0.1s ease-out; 
+        }
+
+        #planchette:active {
+            cursor: grabbing;
+        }
+
+        /* When script moves the planchette */
+        #planchette.auto-move {
+            transition: left 0.8s ease-in-out, top 0.8s ease-in-out, transform 0.8s ease-in-out;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 20;
+        }
+
+        button {
+            background: linear-gradient(to bottom, #2a1508, #1a0f05);
+            border: 2px solid #5a3f25;
+            color: #cca470;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 10px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.8), inset 0 0 5px rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(to bottom, #3a2311, #2a1508);
+            color: #ffd8a0;
+            box-shadow: 0 5px 20px rgba(255, 184, 77, 0.4), inset 0 0 5px rgba(255,255,255,0.2);
+            border-color: #cca470;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        }
+
+        #question-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #5a3f25;
+            color: #ffd8a0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 10px 15px;
+            border-radius: 8px;
+            outline: none;
+            width: 250px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+            transition: all 0.3s;
+        }
+
+        #question-input::placeholder {
+            color: #cca470;
+            opacity: 0.6;
+        }
+
+        #question-input:focus {
+            border-color: #cca470;
+            box-shadow: 0 0 10px rgba(204, 164, 112, 0.3), inset 0 2px 5px rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        #message-display {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffd8a0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 30px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            text-shadow: 0 0 15px rgba(255, 184, 77, 0.8), 0 0 5px rgba(255, 184, 77, 0.5);
+            pointer-events: none;
+            height: 40px;
+            white-space: nowrap;
+            text-align: center;
+            z-index: 20;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 900px) {
+            #board-container {
+                border-radius: 0;
+                border: none;
+                box-shadow: none;
+            }
+            
+            #board-container::after {
+                border-radius: 0;
+            }
+            
+            #controls {
+                bottom: 20px;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            #message-display {
+                top: 20px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="board-container">
+        <!-- Main Board SVG -->
+        <svg id="ouija-board" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <path id="curveAM" d="M 120 300 A 450 300 0 0 1 880 300" fill="transparent" />
+                <path id="curveNZ" d="M 220 400 A 350 200 0 0 1 780 400" fill="transparent" />
+                <path id="line10" d="M 150 480 L 850 480" fill="transparent" />
+                <path id="curveGoodbye" d="M 250 580 A 250 50 0 0 0 750 580" fill="transparent"/>
+                <filter id="glow-text">
+                    <feGaussianBlur stdDeviation="2" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+            </defs>
+            
+            <g class="board-graphics">
+                <!-- Sun and Moon Settings -->
+                <g class="icon sun" transform="translate(120, 115)">
+                    <circle cx="0" cy="0" r="15" stroke="none" />
+                    <path d="M 0 -22 L 0 -35 M 0 22 L 0 35 M -22 0 L -35 0 M 22 0 L 35 0 M -15 -15 L -25 -25 M 15 15 L 25 25 M -15 15 L -25 25 M 15 -15 L 25 -25" stroke-width="5" stroke-linecap="round" fill="none"/>
+                </g>
+                <g class="icon moon" transform="translate(880, 115) scale(0.8)">
+                    <path d="M 0 -30 A 30 30 0 1 0 0 30 A 25 25 0 0 1 -10 15 A 5 5 0 0 0 -10 5 A 25 25 0 0 1 0 -30" stroke="none" />
+                </g>
+
+                <!-- TITLE -->
+                <text x="500" y="90" class="title" text-anchor="middle">O U I J A</text>
+                
+                <!-- YES / NO -->
+                <text x="220" y="160" class="word yes" text-anchor="middle">Y E S</text>
+                <text x="780" y="160" class="word no" text-anchor="middle">N O</text>
+                
+                <!-- Alphabet -->
+                <text class="alphabet" text-anchor="middle" letter-spacing="5">
+                    <textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath>
+                </text>
+                <text class="alphabet" text-anchor="middle" letter-spacing="5">
+                    <textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath>
+                </text>
+                
+                <!-- Numbers -->
+                <text class="numbers" text-anchor="middle" letter-spacing="10">
+                    <textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath>
+                </text>
+                
+                <!-- GOOD BYE -->
+                <text class="word goodbye" text-anchor="middle" letter-spacing="5">
+                    <textPath href="#curveGoodbye" startOffset="50%">G O O D B Y E</textPath>
+                </text>
+            </g>
+        </svg>
+
+        <!-- Planchette Element -->
+        <div id="planchette">
+            <svg viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="planchette-wood" patternUnits="userSpaceOnUse" width="400" height="400">
+                        <image href="wood_bg.png" x="-100" y="-100" width="500" height="500" preserveAspectRatio="xMidYMid slice" />
+                    </pattern>
+                    <filter id="shadow">
+                        <feDropShadow dx="0" dy="15" stdDeviation="15" flood-color="#000" flood-opacity="0.9"/>
+                    </filter>
+                    <filter id="hole-glow">
+                        <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ffcc66" flood-opacity="0.8"/>
+                    </filter>
+                    <mask id="hole-mask">
+                        <rect width="200" height="250" fill="white" />
+                        <circle cx="100" cy="180" r="35" fill="black" />
+                    </mask>
+                </defs>
+                
+                <!-- Planchette Body -->
+                <path class="planchette-shape" filter="url(#shadow)" mask="url(#hole-mask)" d="M 100 10 C 150 150, 190 200, 180 240 C 170 250, 30 250, 20 240 C 10 200, 50 150, 100 10 Z" fill="url(#planchette-wood)" stroke="#1a0f05" stroke-width="3"/>
+                
+                <!-- Inner Window (Hole) Borders -->
+                <circle cx="100" cy="180" r="35" fill="transparent" stroke="#1a0f05" stroke-width="4" filter="url(#hole-glow)"/>
+                <circle cx="100" cy="180" r="38" fill="transparent" stroke="rgba(0,0,0,0.8)" stroke-width="2"/>
+                
+                <!-- Decorative lines -->
+                <path d="M 100 30 L 100 120 M 70 80 L 130 80" stroke="#1a0f05" stroke-width="2" fill="transparent" opacity="0.6"/>
+            </svg>
+        </div>
+        
+        <!-- Controls and Text Message -->
+        <div id="controls">
+            <input type="text" id="question-input" placeholder="Ask the spirits..." autocomplete="off">
+            <button id="ask-btn">Ask</button>
+            <button id="auto-btn">Random</button>
+            <button id="reset-btn">Rest</button>
+        </div>
+
+        <div id="message-display"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const planchette = document.getElementById('planchette');
+            const container = document.getElementById('board-container');
+            const autoBtn = document.getElementById('auto-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const msgDisplay = document.getElementById('message-display');
+            const svgBoard = document.getElementById('ouija-board');
+
+            let isDragging = false;
+            let startX = 0;
+            let startY = 0;
+            let initialLeft = 0;
+            let initialTop = 0;
+            let autoMode = false;
+            let activeMoveTimeout = null;
+
+            // Reset Planchette to center gracefully
+            const initPos = () => {
+                const rect = container.getBoundingClientRect();
+                planchette.classList.add('auto-move');
+                planchette.style.left = `${rect.width / 2}px`;
+                planchette.style.top = `${rect.height / 2 + 80}px`;
+                planchette.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+                
+                setTimeout(() => {
+                    if(!autoMode) {
+                        planchette.classList.remove('auto-move');
+                    }
+                }, 800);
+                
+                msgDisplay.textContent = "";
+            };
+
+            setTimeout(initPos, 200);
+
+            // Grab Planchette
+            const onPointerDown = (e) => {
+                if(autoMode) return;
+                isDragging = true;
+                planchette.style.transition = 'none'; // remove transition for smooth dragging
+                
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                startX = clientX;
+                startY = clientY;
+                
+                initialLeft = parseFloat(planchette.style.left) || container.clientWidth / 2;
+                initialTop = parseFloat(planchette.style.top) || container.clientHeight / 2;
+
+                e.preventDefault();
+            };
+
+            // Drag Planchette
+            const onPointerMove = (e) => {
+                if (!isDragging) return;
+                
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+                
+                let newLeft = initialLeft + dx;
+                let newTop = initialTop + dy;
+                
+                const pRect = planchette.getBoundingClientRect();
+                const cRect = container.getBoundingClientRect();
+                
+                // Boundaries
+                if(newLeft < pRect.width/2) newLeft = pRect.width/2;
+                if(newLeft > cRect.width - pRect.width/2) newLeft = cRect.width - pRect.width/2;
+                if(newTop < pRect.height/2) newTop = pRect.height/2;
+                if(newTop > cRect.height - pRect.height/2) newTop = cRect.height - pRect.height/2;
+                
+                // Rotational effect based on lateral motion
+                const rotation = (dx * 0.05);
+                
+                planchette.style.left = `${newLeft}px`;
+                planchette.style.top = `${newTop}px`;
+                planchette.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+            };
+
+            // Release Planchette
+            const onPointerUp = () => {
+                if(isDragging) {
+                    isDragging = false;
+                    planchette.style.transition = 'transform 0.4s ease-out';
+                    planchette.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+                }
+            };
+
+            planchette.addEventListener('mousedown', onPointerDown);
+            document.addEventListener('mousemove', onPointerMove);
+            document.addEventListener('mouseup', onPointerUp);
+
+            planchette.addEventListener('touchstart', onPointerDown, {passive: false});
+            document.addEventListener('touchmove', onPointerMove, {passive: false});
+            document.addEventListener('touchend', onPointerUp);
+
+            // Mathematical Mapping of Letters to inner SVG viewBox (1000x650)
+            const targets = {
+                'YES': {x: 220, y: 160},
+                'NO': {x: 780, y: 160},
+                'GOODBYE': {x: 500, y: 580}
+            };
+            
+            // Function to calculate exact point on an SVG path safely
+            const getPathPoint = (pathId, percentage) => {
+                const path = document.getElementById(pathId);
+                if(!path) return {x:0, y:0};
+                const length = path.getTotalLength();
+                return path.getPointAtLength(length * percentage);
+            };
+
+            // A-N Mapping (14 characters, center 50%) -> roughly 15% to 85% of path
+            const amArr = "ABCDEFGHIJKLMN".split("");
+            amArr.forEach((c, i) => {
+                let pct = 0.22 + (0.56 / 13) * i; 
+                let pt = getPathPoint('curveAM', pct);
+                targets[c] = {x: pt.x, y: pt.y - 15}; // Offset slightly so hole aligns with center
+            });
+
+            // O-Z Mapping
+            const nzArr = "OPQRSTUVWXYZ".split("");
+            nzArr.forEach((c, i) => {
+                let pct = 0.18 + (0.64 / 11) * i;
+                let pt = getPathPoint('curveNZ', pct);
+                targets[c] = {x: pt.x, y: pt.y - 15};
+            });
+            
+            // Numbers Mapping
+            const numArr = "1234567890".split("");
+            numArr.forEach((c, i) => {
+                let pct = 0.25 + (0.50 / 9) * i; 
+                let pt = getPathPoint('line10', pct);
+                targets[c] = {x: pt.x, y: pt.y - 15};
+            });
+
+            // Animate Planchette to Target
+            const moveToTarget = (svgX, svgY) => {
+                const svgRect = svgBoard.getBoundingClientRect();
+                // Container rect needed because planchette absolute positioning is relative to container
+                const contRect = container.getBoundingClientRect();
+                
+                const scaleX = svgRect.width / 1000;
+                const scaleY = svgRect.height / 650;
+                
+                let targetX = (svgRect.left - contRect.left) + svgX * scaleX;
+                let targetY = (svgRect.top - contRect.top) + svgY * scaleY;
+
+                planchette.classList.add('auto-move');
+                
+                // Random organic offset
+                targetX += (Math.random() - 0.5) * 8;
+                targetY += (Math.random() - 0.5) * 8;
+                let rotation = (Math.random() - 0.5) * 15;
+
+                planchette.style.left = `${targetX}px`;
+                planchette.style.top = `${targetY}px`;
+                planchette.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+            };
+
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+            // Spelling Routine
+            const spellMessage = async (msg) => {
+                autoMode = true;
+                msgDisplay.textContent = "";
+                const words = msg.toUpperCase().split(' ');
+                
+                for (let word of words) {
+                    if (targets[word]) { // Known solid words
+                        moveToTarget(targets[word].x, targets[word].y);
+                        await sleep(1500);
+                        msgDisplay.textContent += word;
+                    } else {
+                        for (let char of word) {
+                            if (targets[char]) {
+                                moveToTarget(targets[char].x, targets[char].y);
+                                await sleep(1200);
+                                msgDisplay.textContent += char;
+                            }
+                        }
+                    }
+                    msgDisplay.textContent += " ";
+                    await sleep(1000);
+                }
+                
+                if (msg !== 'GOODBYE') {
+                    await sleep(1000);
+                    moveToTarget(targets['GOODBYE'].x, targets['GOODBYE'].y);
+                }
+                
+                activeMoveTimeout = setTimeout(() => {
+                    autoMode = false;
+                    initPos();
+                }, 2000);
+            };
+
+            const questionInput = document.getElementById('question-input');
+            const askBtn = document.getElementById('ask-btn');
+
+            const handleQuestion = async () => {
+                if(autoMode) return;
+                const question = questionInput.value.trim();
+                if(!question) return;
+                
+                questionInput.value = "";
+                questionInput.disabled = true;
+                
+                const answers = [
+                     "YES", "NO", "MAYBE", "DEATH", "RUN", "SOON", "NEVER", "UNKNOWN", 
+                     "IT IS CERTAIN", "DO NOT ASK", "I CANNOT SAY", "THE SPIRITS LAUGH", "666"
+                ];
+                const msg = answers[Math.floor(Math.random() * answers.length)];
+                
+                // Short pause before the spirit answers
+                await sleep(1000);
+                await spellMessage(msg);
+                
+                questionInput.disabled = false;
+            };
+
+            askBtn.addEventListener('click', handleQuestion);
+            questionInput.addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') handleQuestion();
+            });
+
+            // Button Events
+            autoBtn.addEventListener('click', () => {
+                if(autoMode) return;
+                const messages = [
+                     "HELLO", "GHOST", "I SEE YOU", "NO", "RUN", "YES", "SPIRIT", "DEATH",
+                     "BEHIND YOU", "666", "HELP", "DARKNESS", "SOUL", "DEMON", "ALONE", "COLD"
+                ];
+                const msg = messages[Math.floor(Math.random() * messages.length)];
+                spellMessage(msg);
+            });
+
+            resetBtn.addEventListener('click', () => {
+                autoMode = false;
+                clearTimeout(activeMoveTimeout);
+                initPos();
+            });
+
+            // Make 'YES', 'NO', 'GOODBYE' clickable on the SVG
+            document.querySelector('.word.yes').addEventListener('click', () => { if(!autoMode) spellMessage('YES'); });
+            document.querySelector('.word.no').addEventListener('click', () => { if(!autoMode) spellMessage('NO'); });
+            document.querySelector('.word.goodbye').addEventListener('click', () => { if(!autoMode) spellMessage('GOODBYE'); });
+            
+            window.addEventListener('resize', () => {
+                if (!autoMode && !isDragging) {
+                    initPos();
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
