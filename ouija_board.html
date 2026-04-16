@@ -432,9 +432,9 @@
 
             // Mathematical Mapping of Letters to inner SVG viewBox (1000x650)
             const targets = {
-                'YES': {x: 220, y: 160},
-                'NO': {x: 780, y: 160},
-                'GOODBYE': {x: 500, y: 580}
+                'YES': {x: 220, y: 105},
+                'NO': {x: 780, y: 105},
+                'GOODBYE': {x: 500, y: 525}
             };
             
             // Function to calculate exact point on an SVG path safely
@@ -450,21 +450,21 @@
             amArr.forEach((c, i) => {
                 let pct = 0.22 + (0.56 / 13) * i; 
                 let pt = getPathPoint('curveAM', pct);
-                targets[c] = {x: pt.x, y: pt.y - 35}; 
+                targets[c] = {x: pt.x, y: pt.y - 55}; 
             });
 
             const nzArr = "OPQRSTUVWXYZ".split("");
             nzArr.forEach((c, i) => {
                 let pct = 0.18 + (0.64 / 11) * i;
                 let pt = getPathPoint('curveNZ', pct);
-                targets[c] = {x: pt.x, y: pt.y - 35};
+                targets[c] = {x: pt.x, y: pt.y - 55};
             });
             
             const numArr = "1234567890".split("");
             numArr.forEach((c, i) => {
                 let pct = 0.25 + (0.50 / 9) * i; 
                 let pt = getPathPoint('line10', pct);
-                targets[c] = {x: pt.x, y: pt.y - 35};
+                targets[c] = {x: pt.x, y: pt.y - 55};
             });
 
             // Animate Planchette to Target
