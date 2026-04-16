@@ -103,7 +103,7 @@
             height: 23%;
             transform: translate(-50%, -50%);
             cursor: grab;
-            z-index: 10;
+            z-index: 100;
         }
 
         #planchette.auto-move {
@@ -174,17 +174,17 @@
 
         #message-display {
             position: fixed;
-            top: 5vh;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
-            color: #ffd8a0;
+            color: #ffcc66;
             font-size: 4vmin;
             letter-spacing: 0.8vmin;
-            text-shadow: 0 0 1.5vmin rgba(255, 184, 77, 0.8);
+            text-shadow: 0 0 10px rgba(255, 184, 77, 0.6), 0 0 20px rgba(0,0,0,1);
             pointer-events: none;
             text-align: center;
-            z-index: 20;
-            height: 5vh;
+            z-index: 50;
+            width: 90%;
         }
 
         @media (max-width: 600px) {
@@ -436,10 +436,10 @@
         <!-- Main Board SVG -->
         <svg id="ouija-board" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg">
             <defs>
-                <path id="curveAM" d="M 120 300 A 450 300 0 0 1 880 300" fill="transparent" />
-                <path id="curveNZ" d="M 220 400 A 350 200 0 0 1 780 400" fill="transparent" />
-                <path id="line10" d="M 150 480 L 850 480" fill="transparent" />
-                <path id="curveGoodbye" d="M 250 580 A 250 50 0 0 0 750 580" fill="transparent"/>
+                <path id="curveAM" d="M 120 370 A 450 120 0 0 1 880 370" fill="transparent" />
+                <path id="curveNZ" d="M 200 450 A 350 70 0 0 1 800 450" fill="transparent" />
+                <path id="line10" d="M 150 560 L 850 560" fill="transparent" />
+                <path id="curveGoodbye" d="M 250 620 A 250 20 0 0 0 750 620" fill="transparent"/>
                 <filter id="glow-text">
                     <feGaussianBlur stdDeviation="2" result="blur" />
                     <feComposite in="SourceGraphic" in2="blur" operator="over" />
