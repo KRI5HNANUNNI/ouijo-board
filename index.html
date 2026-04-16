@@ -2,107 +2,155 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Advanced Mystical Ouija Board</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Spirit Hub | Mystical Ouija Board</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Outfit:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark: #0a0a0c;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark);
+            color: #e0e0e0;
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: radial-gradient(circle, #1a1a2e 0%, #0a0a0c 100%);
+        }
+
+        #mist-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.4;
+        }
+
+        .portal-card {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 3rem;
+            color: var(--gold);
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            letter-spacing: 5px;
+        }
+
+        p {
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mystic-btn {
+            padding: 20px 40px;
+            font-size: 1.2rem;
+            font-family: 'Cinzel Decorative', cursive;
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            display: block;
+        }
+
+        .mystic-btn:hover {
+            background: var(--gold);
+            color: #000;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            transform: translateY(-5px);
+        }
+
+        .mystic-btn.secondary {
+            background: transparent;
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .mystic-btn.secondary:hover {
+            border-color: #fff;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .particle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 10s infinite linear;
+            opacity: 0.1;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(20px, -50px) scale(1.5); }
+            100% { transform: translate(-20px, -100px) scale(0); }
+        }
+    </style>
 </head>
 <body>
-    <div id="board-container">
-        <!-- Main Board SVG -->
-        <svg id="ouija-board" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <path id="curveAM" d="M 120 300 A 450 300 0 0 1 880 300" fill="transparent" />
-                <path id="curveNZ" d="M 220 400 A 350 200 0 0 1 780 400" fill="transparent" />
-                <path id="line10" d="M 150 480 L 850 480" fill="transparent" />
-                <path id="curveGoodbye" d="M 250 580 A 250 50 0 0 0 750 580" fill="transparent"/>
-                <filter id="glow-text">
-                    <feGaussianBlur stdDeviation="2" result="blur" />
-                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                </filter>
-            </defs>
-            
-            <g class="board-graphics">
-                <!-- Sun and Moon Settings -->
-                <g class="icon sun" transform="translate(120, 115)">
-                    <circle cx="0" cy="0" r="15" stroke="none" />
-                    <path d="M 0 -22 L 0 -35 M 0 22 L 0 35 M -22 0 L -35 0 M 22 0 L 35 0 M -15 -15 L -25 -25 M 15 15 L 25 25 M -15 15 L -25 25 M 15 -15 L 25 -25" stroke-width="5" stroke-linecap="round" fill="none"/>
-                </g>
-                <g class="icon moon" transform="translate(880, 115) scale(0.8)">
-                    <path d="M 0 -30 A 30 30 0 1 0 0 30 A 25 25 0 0 1 -10 15 A 5 5 0 0 0 -10 5 A 25 25 0 0 1 0 -30" stroke="none" />
-                </g>
-
-                <!-- TITLE -->
-                <text x="500" y="90" class="title" text-anchor="middle">O U I J A</text>
-                
-                <!-- YES / NO -->
-                <text x="220" y="160" class="word yes" text-anchor="middle">Y E S</text>
-                <text x="780" y="160" class="word no" text-anchor="middle">N O</text>
-                
-                <!-- Alphabet -->
-                <text class="alphabet" text-anchor="middle" letter-spacing="5">
-                    <textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath>
-                </text>
-                <text class="alphabet" text-anchor="middle" letter-spacing="5">
-                    <textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath>
-                </text>
-                
-                <!-- Numbers -->
-                <text class="numbers" text-anchor="middle" letter-spacing="10">
-                    <textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath>
-                </text>
-                
-                <!-- GOOD BYE -->
-                <text class="word goodbye" text-anchor="middle" letter-spacing="5">
-                    <textPath href="#curveGoodbye" startOffset="50%">G O O D B Y E</textPath>
-                </text>
-            </g>
-        </svg>
-
-        <!-- Planchette Element -->
-        <div id="planchette">
-            <svg viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <pattern id="planchette-wood" patternUnits="userSpaceOnUse" width="400" height="400">
-                        <image href="wood_bg.png" x="-100" y="-100" width="500" height="500" preserveAspectRatio="xMidYMid slice" />
-                    </pattern>
-                    <filter id="shadow">
-                        <feDropShadow dx="0" dy="15" stdDeviation="15" flood-color="#000" flood-opacity="0.9"/>
-                    </filter>
-                    <filter id="hole-glow">
-                        <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ffcc66" flood-opacity="0.8"/>
-                    </filter>
-                    <mask id="hole-mask">
-                        <rect width="200" height="250" fill="white" />
-                        <circle cx="100" cy="180" r="35" fill="black" />
-                    </mask>
-                </defs>
-                
-                <!-- Planchette Body -->
-                <path class="planchette-shape" filter="url(#shadow)" mask="url(#hole-mask)" d="M 100 10 C 150 150, 190 200, 180 240 C 170 250, 30 250, 20 240 C 10 200, 50 150, 100 10 Z" fill="url(#planchette-wood)" stroke="#1a0f05" stroke-width="3"/>
-                
-                <!-- Inner Window (Hole) Borders -->
-                <circle cx="100" cy="180" r="35" fill="transparent" stroke="#1a0f05" stroke-width="4" filter="url(#hole-glow)"/>
-                <circle cx="100" cy="180" r="38" fill="transparent" stroke="rgba(0,0,0,0.8)" stroke-width="2"/>
-                
-                <!-- Decorative lines -->
-                <path d="M 100 30 L 100 120 M 70 80 L 130 80" stroke="#1a0f05" stroke-width="2" fill="transparent" opacity="0.6"/>
-            </svg>
-        </div>
-        
-        <!-- Controls and Text Message -->
-        <div id="controls">
-            <input type="text" id="question-input" placeholder="Ask the spirits..." autocomplete="off">
-            <button id="ask-btn">Ask</button>
-            <button id="auto-btn">Random</button>
-            <button id="reset-btn">Rest</button>
-        </div>
-
-        <div id="message-display"></div>
-    </div>
+    <div id="mist-container"></div>
     
-    <script src="script.js"></script>
+    <div class="portal-card">
+        <h1>OUIJA</h1>
+        <p>Advanced Mystical Communication Suite</p>
+        
+        <div class="btn-group">
+            <a href="ouija_board.html" class="mystic-btn">OPEN THE BOARD</a>
+            <a href="ghost.html" class="mystic-btn secondary">GHOST CONTROLLER</a>
+        </div>
+    </div>
+
+    <script>
+        // Create mystic floating particles
+        const mist = document.getElementById('mist-container');
+        for (let i = 0; i < 50; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 3 + 1;
+            p.style.width = `${size}px`;
+            p.style.height = `${size}px`;
+            p.style.left = `${Math.random() * 100}%`;
+            p.style.top = `${Math.random() * 100 + 100}%`;
+            p.style.animationDelay = `${Math.random() * 10}s`;
+            p.style.animationDuration = `${Math.random() * 10 + 10}s`;
+            mist.appendChild(p);
+        }
+    </script>
 </body>
 </html>
