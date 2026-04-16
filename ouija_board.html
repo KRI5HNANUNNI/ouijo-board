@@ -113,9 +113,9 @@
         }
 
         #planchette.auto-move {
-            transition: left 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95), 
-                        top 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95), 
-                        transform 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+            transition: left 2.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                        top 2.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 2.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         #planchette.live-move {
@@ -444,9 +444,9 @@
         <!-- Main Board SVG -->
         <svg id="ouija-board" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg">
             <defs>
-                <path id="curveAM" d="M 50 350 A 450 140 0 0 1 950 350" fill="transparent" />
-                <path id="curveNZ" d="M 100 480 A 400 100 0 0 1 900 480" fill="transparent" />
-                <path id="line10" d="M 150 580 L 850 580" fill="transparent" />
+                <path id="curveAM" d="M 30 350 A 470 140 0 0 1 970 350" fill="transparent" />
+                <path id="curveNZ" d="M 80 480 A 420 100 0 0 1 920 480" fill="transparent" />
+                <path id="line10" d="M 120 580 L 880 580" fill="transparent" />
                 <path id="curveGoodbye" d="M 250 635 A 250 15 0 0 0 750 635" fill="transparent"/>
                 <filter id="glow-text">
                     <feGaussianBlur stdDeviation="2" result="blur" />
@@ -472,11 +472,11 @@
                 <text x="780" y="160" class="word no" text-anchor="middle">N O</text>
                 
                 <!-- Alphabet -->
-                <text id="txt-am" class="alphabet" text-anchor="middle" letter-spacing="5"><textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath></text>
-                <text id="txt-nz" class="alphabet" text-anchor="middle" letter-spacing="5"><textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath></text>
+                <text id="txt-am" class="alphabet" text-anchor="middle" letter-spacing="8"><textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath></text>
+                <text id="txt-nz" class="alphabet" text-anchor="middle" letter-spacing="8"><textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath></text>
                 
                 <!-- Numbers -->
-                <text id="txt-num" class="numbers" text-anchor="middle" letter-spacing="10"><textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath></text>
+                <text id="txt-num" class="numbers" text-anchor="middle" letter-spacing="12"><textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath></text>
                 
                 <!-- GOOD BYE -->
                 <text class="word goodbye" text-anchor="middle" letter-spacing="5">
@@ -690,23 +690,23 @@
             // A-N Mapping (14 characters)
             const amArr = "ABCDEFGHIJKLMN".split("");
             amArr.forEach((c, i) => {
-                let pct = 0.05 + (0.90 / 13) * i; 
+                let pct = 0.08 + (0.84 / 13) * i; 
                 let pt = getPathPoint('curveAM', pct);
-                targets[c] = {x: pt.x, y: pt.y - 35}; 
+                targets[c] = {x: pt.x, y: pt.y - 45}; 
             });
 
             const nzArr = "OPQRSTUVWXYZ".split("");
             nzArr.forEach((c, i) => {
-                let pct = 0.05 + (0.90 / 11) * i;
+                let pct = 0.12 + (0.76 / 11) * i;
                 let pt = getPathPoint('curveNZ', pct);
-                targets[c] = {x: pt.x, y: pt.y - 35};
+                targets[c] = {x: pt.x, y: pt.y - 45};
             });
             
             const numArr = "1234567890".split("");
             numArr.forEach((c, i) => {
-                let pct = 0.05 + (0.90 / 9) * i; 
+                let pct = 0.1 + (0.8 / 9) * i; 
                 let pt = getPathPoint('line10', pct);
-                targets[c] = {x: pt.x, y: pt.y - 35};
+                targets[c] = {x: pt.x, y: pt.y - 45};
             });
 
             // Animate Planchette to Target
