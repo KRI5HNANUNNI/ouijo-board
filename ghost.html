@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagnostic Tool v4.2</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            color: #333;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .header {
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .log-container {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 150px;
+            overflow-y: scroll;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        #login-section {
+            max-width: 300px;
+            margin: 100px auto;
+            background: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #admin-controls {
+            display: none;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-group button {
+            flex: 1;
+        }
+        .status {
+            color: green;
+            font-weight: bold;
+        }
+        .quick-actions {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9e9e9;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-section">
+        <h3>Auth Required</h3>
+        <p>Enter Access Key:</p>
+        <input type="password" id="passcode" placeholder="Key...">
+        <button onclick="checkAuth()">Login</button>
+    </div>
+
+    <div id="admin-controls">
+        <div class="header">
+            <h3>Diagnostic Console - System #8822</h3>
+            <p>Status: <span class="status">Connected via Firebase</span></p>
+        </div>
+
+        <div class="log-container" id="log">
+            [SYS] Initializing control layer...<br>
+            [SYS] Ready for input.<br>
+        </div>
+
+        <p>Send Command to Board:</p>
+        <input type="text" id="target-word" placeholder="Word to spell...">
+        <button onclick="sendCommand()" id="send-btn">Spell Now</button>
+
+        <div class="btn-group">
+            <button onclick="sendQuick('YES')">YES</button>
+            <button onclick="sendQuick('NO')">NO</button>
+            <button onclick="sendQuick('GOODBYE')" style="background: #ffcccc;">GOODBYE</button>
+        </div>
+
+        <div class="quick-actions">
+            <strong>System Maintenance:</strong><br>
+            <button onclick="clearCommands()" style="background: #999; color: white;">Reset Board State</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // ==========================================
+        // PASTE YOUR FIREBASE CONFIG HERE:
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "PLACEHOLDER",
+            authDomain: "PLACEHOLDER",
+            databaseURL: "PLACEHOLDER",
+            projectId: "PLACEHOLDER",
+            storageBucket: "PLACEHOLDER",
+            messagingSenderId: "PLACEHOLDER",
+            appId: "PLACEHOLDER"
+        };
+
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getDatabase(app);
+        } catch(e) { console.error("Firebase not configured"); }
+
+        window.checkAuth = () => {
+            const code = document.getElementById('passcode').value;
+            if(code === 'spirit99') { // Replace with your desired passcode
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('admin-controls').style.display = 'block';
+            } else {
+                alert("Invalid Key");
+            }
+        };
+
+        const log = (msg) => {
+            const l = document.getElementById('log');
+            l.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+            l.scrollTop = l.scrollHeight;
+        };
+
+        window.sendCommand = () => {
+            const word = document.getElementById('target-word').value.trim().toUpperCase();
+            if(!word || !db) return;
+            
+            const commandRef = ref(db, 'ouija_session/current_word');
+            set(commandRef, {
+                text: word,
+                timestamp: Date.now()
+            });
+            log(`Sent: ${word}`);
+            document.getElementById('target-word').value = "";
+        };
+
+        window.sendQuick = (word) => {
+            document.getElementById('target-word').value = word;
+            window.sendCommand();
+        };
+
+        window.clearCommands = () => {
+            if(!db) return;
+            const commandRef = ref(db, 'ouija_session/current_word');
+            set(commandRef, null);
+            log("State Cleared.");
+        };
+
+        // Allow Enter key
+        document.getElementById('target-word').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') window.sendCommand();
+        });
+    </script>
+</body>
+</html>
