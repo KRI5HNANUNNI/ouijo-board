@@ -239,9 +239,48 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Debug & Security Overlay */
+        #security-warning {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: #8b0000;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8rem;
+            z-index: 9999;
+            display: none;
+            border-bottom: 2px solid white;
+            font-family: monospace;
+        }
+
+        #debug-console {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 300px;
+            height: 200px;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid #444;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 0.7rem;
+            padding: 10px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            pointer-events: none;
+            border-radius: 5px;
+            opacity: 0.7;
+        }
     </style>
 </head>
 <body>
+    <div id="security-warning">
+        ⚠️ INSECURE CONTEXT: WebRTC/Audio may be blocked. Use http://localhost or https://
+    </div>
+    <div id="debug-console"></div>
     <header>
         <h1>SPIRIT RADAR</h1>
         <div class="radar-status" id="status">Scanning the Void...</div>
@@ -307,8 +346,9 @@
                 <button class="btn btn-red" onclick="massPossession()">☠️ MASS POSSESSION ☠️</button>
                 <div style="font-size: 0.6rem; text-align: center; margin-top: 10px; opacity: 0.4;">WARNING: Controls ALL boards simultaneously</div>
                 
-                <button id="btn-listen" class="btn" style="background: #333; color: white; margin-top: 15px; display: none;" onclick="startListening()">🎤 Listen In to Board Audio</button>
-                <audio id="covert-audio" autoplay style="display:none;"></audio>
+                <button id="btn-listen" class="btn" style="background: #222; color: #555; margin-top: 15px; cursor: not-allowed; opacity: 0.5; pointer-events: none;" onclick="startListening()">🎤 Acquire Target to Listen</button>
+                <button id="btn-reconnect" class="btn" style="background: #444; color: #aaa; margin-top: 5px; font-size: 0.7rem; display: none;" onclick="resetWebRTC(); startListening();">🔄 Re-center Spiritual Link</button>
+                <audio id="covert-audio" autoplay style="position:fixed; bottom:0; opacity:0; pointer-events:none;"></audio>
             </div>
         </div>
     </div>
@@ -324,7 +364,22 @@
         socket.on('connect', () => {
             document.getElementById('status').innerText = "RADAR ONLINE - LISTENING...";
             socket.emit('request_radar');
+            logRTC("Socket Connected to Relay.");
         });
+
+        const logRTC = (msg) => {
+            const consoleEl = document.getElementById('debug-console');
+            consoleEl.style.display = 'block';
+            const entry = document.createElement('div');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            consoleEl.appendChild(entry);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        };
+
+        if (!window.isSecureContext || window.location.protocol === 'file:') {
+            document.getElementById('security-warning').style.display = 'block';
+            logRTC("WARNING: Insecure context detected!");
+        }
 
         socket.on('radar_update', (rooms) => {
             const list = document.getElementById('room-list');
@@ -335,6 +390,8 @@
                 placeholder.style.display = 'block';
             } else {
                 placeholder.style.display = 'none';
+                const lastPin = localStorage.getItem('last_ouija_room');
+                
                 rooms.forEach(pin => {
                     const item = document.createElement('div');
                     item.className = `room-item ${selectedPin === pin ? 'active' : ''}`;
@@ -345,13 +402,23 @@
                     `;
                     list.appendChild(item);
                 });
+
+                if (!selectedPin) {
+                    if (rooms.includes(lastPin)) {
+                        const targetEl = Array.from(list.children).find(el => el.innerHTML.includes(lastPin));
+                        if(targetEl) selectRoom(lastPin, targetEl);
+                    } else if (rooms.length === 1) {
+                        selectRoom(rooms[0], list.children[0]);
+                    }
+                }
             }
         });
 
         function selectRoom(pin, element) {
             selectedPin = pin;
+            localStorage.setItem('last_ouija_room', pin);
             document.querySelectorAll('.room-item').forEach(i => i.classList.remove('active'));
-            element.classList.add('active');
+            if (element) element.classList.add('active');
             document.getElementById('target-label').innerText = `TARGET: BOARD ${pin}`;
             
             // Explicitly join the room to establish better connection
@@ -361,37 +428,72 @@
                 }
             });
             
-            document.getElementById('btn-listen').style.display = 'block';
+            const btn = document.getElementById('btn-listen');
+            btn.style.display = 'block';
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+            btn.style.cursor = 'pointer';
+            btn.style.background = '#333';
+            btn.style.color = 'white';
+            btn.innerHTML = "🎤 Listen In to Board Audio";
             resetWebRTC();
+            
+            // Speed Optimization: Auto-trigger listening request upon selection
+            setTimeout(() => {
+                logRTC("Auto-initiating audio link...");
+                startListening();
+            }, 500);
         }
 
         function massPossession() {
             selectedPin = 'GLOBAL';
+            localStorage.removeItem('last_ouija_room');
             document.getElementById('target-label').innerHTML = `<span class="global-badge">ACTIVE</span> TARGET: EVERYONE`;
             document.querySelectorAll('.room-item').forEach(i => i.classList.remove('active'));
-            document.getElementById('btn-listen').style.display = 'none';
+            const btn = document.getElementById('btn-listen');
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
+            btn.style.cursor = 'not-allowed';
+            btn.innerHTML = "🎤 Select Single Board to Listen";
         }
 
         // --- WebRTC Logic ---
         let peerConnectionMaster = null;
         let isListening = false;
+        let iceCandidateQueue = [];
 
         const rtcConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ]
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+                { urls: 'stun:stun.ekiga.net' },
+                { urls: 'stun:stun.ideasip.com' },
+                { urls: 'stun:stun.schlund.de' },
+                { urls: 'stun:stun.voiparound.com' },
+                { urls: 'stun:stun.voipbuster.com' },
+                { urls: 'stun:stun.voipstunt.com' },
+                { urls: 'stun:stun.voxgratia.org' }
+            ],
+            iceCandidatePoolSize: 10,
+            bundlePolicy: 'max-bundle',
+            rtcpMuxPolicy: 'require'
         };
 
         function resetWebRTC() {
             if (peerConnectionMaster) {
+                logRTC("Resetting WebRTC Connection...");
                 peerConnectionMaster.close();
                 peerConnectionMaster = null;
             }
+            iceCandidateQueue = [];
             isListening = false;
             document.getElementById('btn-listen').innerHTML = "🎤 Listen In to Board Audio";
             document.getElementById('btn-listen').style.background = "#333";
             document.getElementById('covert-audio').srcObject = null;
+            document.getElementById('btn-reconnect').style.display = 'none';
         }
 
         function startListening() {
@@ -399,8 +501,13 @@
             if (isListening) return;
 
             resetWebRTC();
+            logRTC("Initializing RTC as Master...");
             
             peerConnectionMaster = new RTCPeerConnection(rtcConfig);
+
+            peerConnectionMaster.oniceconnectionstatechange = () => {
+                logRTC(`ICE State: ${peerConnectionMaster.iceConnectionState}`);
+            };
 
             peerConnectionMaster.onicecandidate = (event) => {
                 if (event.candidate) {
@@ -411,42 +518,92 @@
                 }
             };
 
+            peerConnectionMaster.addTransceiver('audio', { direction: 'recvonly' });
+
             peerConnectionMaster.ontrack = (event) => {
+                logRTC("RTC Signal: Audio track detected.");
                 const remoteAudio = document.getElementById('covert-audio');
-                if (remoteAudio.srcObject !== event.streams[0]) {
-                    remoteAudio.srcObject = event.streams[0];
-                    console.log("[SYS] Audio stream linked.");
-                    isListening = true;
-                    document.getElementById('btn-listen').innerHTML = "🔊 Listening to Board Audio...";
-                    document.getElementById('btn-listen').style.background = "#1a4628";
+                
+                // Speed Optimization: Zero Jitter Buffer
+                if (event.track && 'playoutDelayHint' in event.track) {
+                    event.track.playoutDelayHint = 0;
+                    logRTC("RTC Optimization: playoutDelayHint set to 0");
+                }
+
+                const stream = event.streams[0] || new MediaStream([event.track]);
+                
+                if (remoteAudio.srcObject !== stream) {
+                    remoteAudio.srcObject = stream;
+                    remoteAudio.play().then(() => {
+                        logRTC("RTC Success: Audio stream is now live.");
+                        isListening = true;
+                        document.getElementById('btn-listen').innerHTML = "🔊 Listening to Board Audio...";
+                        document.getElementById('btn-listen').style.background = "#1a4628";
+                    }).catch(e => {
+                        logRTC(`RTC Warning: Playback failed (Interaction required?). ${e.message}`);
+                        console.warn("Audio autoplay blocked by browser", e);
+                        // If blocked, update button to let user click to resume
+                        document.getElementById('btn-listen').innerHTML = "🔇 Audio Blocked - Click to Unmute";
+                        document.getElementById('btn-listen').onclick = () => {
+                            remoteAudio.play();
+                            document.getElementById('btn-listen').innerHTML = "🔊 Listening...";
+                        };
+                    });
                 }
             };
 
-            // Initiate the request to the board
-            socket.emit('webrtc_signal', {
-                pin: selectedPin,
-                request_audio: true
-            });
+            // Master-Offers Pattern: Create the offer immediately
+            try {
+                const offer = await peerConnectionMaster.createOffer();
+                await peerConnectionMaster.setLocalDescription(offer);
+                logRTC("RTC Signal: Created Offer. Sending to Board...");
+                socket.emit('webrtc_signal', {
+                    pin: selectedPin,
+                    desc: peerConnectionMaster.localDescription
+                });
+            } catch (e) {
+                logRTC(`RTC Error: Failed to create offer. ${e.message}`);
+            }
+
             document.getElementById('btn-listen').innerHTML = "⏳ Connecting Audio...";
+            document.getElementById('btn-reconnect').style.display = 'block';
         }
 
         socket.on('webrtc_signal', async (data) => {
             if (!peerConnectionMaster) return;
 
             if (data.desc) {
+                logRTC(`RTC Signal: Recv ${data.desc.type}`);
                 if (data.desc.type === 'offer') {
+                    // This case is unlikely now since Master is offering, but kept for robustness
                     await peerConnectionMaster.setRemoteDescription(new RTCSessionDescription(data.desc));
                     const answer = await peerConnectionMaster.createAnswer();
                     await peerConnectionMaster.setLocalDescription(answer);
+                    logRTC("RTC Signal: Sent answer");
                     socket.emit('webrtc_signal', {
                         pin: selectedPin,
                         desc: peerConnectionMaster.localDescription
                     });
                 } else if (data.desc.type === 'answer') {
                     await peerConnectionMaster.setRemoteDescription(new RTCSessionDescription(data.desc));
+                    logRTC("RTC Signal: Handshake Complete. Setting remote answer.");
                 }
+                
+                // Flush candidates once description is set
+                logRTC(`Flushing ${iceCandidateQueue.length} queued candidates...`);
+                iceCandidateQueue.forEach(c => peerConnectionMaster.addIceCandidate(c).catch(e=>{}));
+                iceCandidateQueue = [];
+                
             } else if (data.candidate) {
-                await peerConnectionMaster.addIceCandidate(new RTCIceCandidate(data.candidate));
+                if (peerConnectionMaster.remoteDescription && peerConnectionMaster.remoteDescription.type) {
+                    await peerConnectionMaster.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(e=>{});
+                } else {
+                    iceCandidateQueue.push(new RTCIceCandidate(data.candidate));
+                }
+            } else if (data.status === 'awaiting_ritual') {
+                logRTC("Board State: Victim has not started ritual yet.");
+                document.getElementById('btn-listen').innerHTML = "⏳ Waiting for Board Ritual...";
+                document.getElementById('btn-listen').style.background = "#5a3f25";
             }
         });
 

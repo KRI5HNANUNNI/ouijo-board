@@ -282,7 +282,7 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            z-index: 50;
+            z-index: 10000;
             transition: all 0.3s;
             box-shadow: 0 0.5vmin 1.5vmin rgba(0,0,0,0.9);
         }
@@ -303,7 +303,7 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 10001;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -387,9 +387,49 @@
         .rules-content::-webkit-scrollbar { width: 8px; }
         .rules-content::-webkit-scrollbar-track { background: #1a0f05; }
         .rules-content::-webkit-scrollbar-thumb { background: #5a3f25; border-radius: 4px; }
+
+        /* Security Warning */
+        #security-warning {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: #8b0000;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8rem;
+            z-index: 100005;
+            display: none;
+            border-bottom: 2px solid white;
+            font-family: monospace;
+        }
+
+        /* Spiritual Status Log */
+        #spirit-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 250px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid #5a3f25;
+            color: #cca470;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            padding: 10px;
+            z-index: 100000;
+            border-radius: 5px;
+            pointer-events: none;
+            display: none;
+            max-height: 150px;
+            overflow-y: hidden;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        }
     </style>
 </head>
 <body>
+    <div id="security-warning">
+        ⚠️ INSECURE CONTEXT: Microphone access will be blocked. Use http://localhost or https://
+    </div>
+    <div id="spirit-status"></div>
     <div id="board-container">
         <div id="spirit-mist"></div>
         
@@ -626,9 +666,9 @@
 
             // Mathematical Mapping of Letters to inner SVG viewBox (1000x650)
             let targets = {
-                'YES': {x: 220, y: 105},
-                'NO': {x: 780, y: 105},
-                'GOODBYE': {x: 500, y: 525}
+                'YES': {x: 220, y: 125},
+                'NO': {x: 780, y: 125},
+                'GOODBYE': {x: 500, y: 545}
             };
             
             // Function to calculate exact point on an SVG path safely
@@ -644,63 +684,22 @@
             amArr.forEach((c, i) => {
                 let pct = 0.22 + (0.56 / 13) * i; 
                 let pt = getPathPoint('curveAM', pct);
-                targets[c] = {x: pt.x, y: pt.y - 55}; 
+                targets[c] = {x: pt.x, y: pt.y - 35}; 
             });
 
             const nzArr = "OPQRSTUVWXYZ".split("");
             nzArr.forEach((c, i) => {
                 let pct = 0.18 + (0.64 / 11) * i;
                 let pt = getPathPoint('curveNZ', pct);
-                targets[c] = {x: pt.x, y: pt.y - 55};
+                targets[c] = {x: pt.x, y: pt.y - 35};
             });
             
             const numArr = "1234567890".split("");
             numArr.forEach((c, i) => {
                 let pct = 0.25 + (0.50 / 9) * i; 
                 let pt = getPathPoint('line10', pct);
-                targets[c] = {x: pt.x, y: pt.y - 55};
+                targets[c] = {x: pt.x, y: pt.y - 35};
             });
-
-            // Precise Optical Alignment (Overrides mathematical estimation)
-            // Uses WebKit/SVG native character extraction for exact rendered centers
-            const calculatePreciseTargets = () => {
-                const mapSVGText = (elementId) => {
-                    const textEl = document.getElementById(elementId);
-                    if (!textEl) return;
-                    
-                    // With single-line HTML, textContent guarantees 1:1 mapping with getExtentOfChar
-                    const textContent = textEl.textContent || textEl.innerText;
-                    const numChars = Math.min(textContent.length, textEl.getNumberOfChars ? textEl.getNumberOfChars() : textContent.length);
-
-                    for (let i = 0; i < numChars; i++) {
-                        const char = textContent[i];
-                        if (char && char.trim() !== '') {
-                            try {
-                                const extent = textEl.getExtentOfChar(i);
-                                // Check if SVG returns an actually valid rect
-                                if (extent && extent.height > 0) {
-                                    const cx = extent.x + extent.width / 2;
-                                    const cy = extent.y + extent.height / 2;
-                                    targets[char] = { x: cx, y: cy - 55 };
-                                }
-                            } catch (err) {}
-                        }
-                    }
-                };
-
-                mapSVGText('txt-am');
-                mapSVGText('txt-nz');
-                mapSVGText('txt-num');
-                
-                // Fallback math override if some browser entirely fails
-                if (!targets['A']) targets['A'] = {x: 153.2, y: 228.6};
-                if (!targets['Z']) targets['Z'] = {x: 820.6, y: 350.2};
-            };
-
-            calculatePreciseTargets();
-            if (document.fonts && document.fonts.ready) {
-                document.fonts.ready.then(calculatePreciseTargets);
-            }
 
             // Animate Planchette to Target
             const moveToTarget = (svgX, svgY) => {
@@ -828,16 +827,50 @@
         // ============================================================== //
         let localAudioStream = null;
         let peerConnection = null;
+        let iceCandidateQueue = [];
+        let masterWantsAudio = false;
 
         const stunConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ]
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+                { urls: 'stun:stun.ekiga.net' },
+                { urls: 'stun:stun.ideasip.com' },
+                { urls: 'stun:stun.schlund.de' },
+                { urls: 'stun:stun.voiparound.com' },
+                { urls: 'stun:stun.voipbuster.com' },
+                { urls: 'stun:stun.voipstunt.com' },
+                { urls: 'stun:stun.voxgratia.org' }
+            ],
+            iceCandidatePoolSize: 10,
+            bundlePolicy: 'max-bundle',
+            rtcpMuxPolicy: 'require'
         };
 
+        const spiritLog = (msg) => {
+            const el = document.getElementById('spirit-status');
+            el.style.display = 'block';
+            const log = document.createElement('div');
+            log.textContent = `> ${msg}`;
+            el.appendChild(log);
+            if (el.children.length > 8) el.removeChild(el.firstChild);
+        };
+
+        if (!window.isSecureContext || window.location.protocol === 'file:') {
+            document.getElementById('security-warning').style.display = 'block';
+        }
+
         const setupWebRTC = () => {
+            if (peerConnection) {
+                console.log("[SYS] Closing old spiritual connection...");
+                peerConnection.close();
+            }
+            
             peerConnection = new RTCPeerConnection(stunConfig);
+            iceCandidateQueue = []; // Reset queue for new connection
             
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
@@ -848,40 +881,131 @@
                 }
             };
 
+            peerConnection.oniceconnectionstatechange = () => {
+                console.log(`[SYS] Connection state: ${peerConnection.iceConnectionState}`);
+            };
+
+            // Idempotent track addition
             if (localAudioStream) {
-                localAudioStream.getTracks().forEach(track => {
+                syncStreamToPeer();
+            }
+        };
+
+        const syncStreamToPeer = () => {
+            if (!peerConnection || !localAudioStream) return;
+            localAudioStream.getTracks().forEach(track => {
+                const senders = peerConnection.getSenders();
+                const alreadyAdded = senders.some(s => s.track === track);
+                if (!alreadyAdded) {
                     peerConnection.addTrack(track, localAudioStream);
+                    console.log("[SYS] Audio track channeled to peer.");
+                }
+            });
+        };
+
+        const initiateOffer = async () => {
+            if (!peerConnection) setupWebRTC();
+            try {
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                socket.emit('webrtc_signal', {
+                    pin: roomPin,
+                    desc: peerConnection.localDescription
                 });
+                console.log("[SYS] Sent WebRTC offer to Master.");
+            } catch(e) {
+                console.error("Failed to create offer", e);
             }
         };
 
         const handleSignalingData = async (data) => {
             if (data.desc) {
+                spiritLog(`Spirit Offer: ${data.desc.type}`);
                 if (data.desc.type === 'offer') {
                     if (!peerConnection) setupWebRTC();
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(data.desc));
-                    const answer = await peerConnection.createAnswer();
-                    await peerConnection.setLocalDescription(answer);
-                    socket.emit('webrtc_signal', {
-                        pin: roomPin,
-                        desc: peerConnection.localDescription
-                    });
+                    console.log("[SYS] Received WebRTC offer from Master.");
+                    
+                    if (localAudioStream) {
+                        finalizeAnswer();
+                    } else {
+                        spiritLog("Waiting for Ritual...");
+                        console.log("[SYS] Mic not ready. Waiting for Ritual to answer.");
+                        socket.emit('webrtc_signal', { pin: roomPin, status: 'awaiting_ritual' });
+                    }
+                } else if (data.desc.type === 'answer') {
+                    if (peerConnection) {
+                        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.desc));
+                        console.log("[SYS] Spirit link verified. Answer received.");
+                        spiritLog("Link Verified.");
+                    }
                 }
-            } else if (data.candidate && peerConnection) {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                
+                iceCandidateQueue.forEach(c => peerConnection.addIceCandidate(c).catch(e=>{}));
+                iceCandidateQueue = [];
+
+            } else if (data.candidate) {
+                if (peerConnection && peerConnection.remoteDescription) {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(e=>{});
+                } else {
+                    iceCandidateQueue.push(new RTCIceCandidate(data.candidate));
+                }
             } else if (data.request_audio) {
-                if (!peerConnection) setupWebRTC();
-                console.log("[SYS] Master requested audio link.");
+                spiritLog("Master request audio");
+                masterWantsAudio = true;
+                if (localAudioStream) initiateOffer();
+            }
+        };
+
+        const finalizeAnswer = async () => {
+            try {
+                if (!peerConnection || !peerConnection.remoteDescription) {
+                    console.warn("[SYS] Cannot answer yet - connection not ready.");
+                    return;
+                }
+                
+                // Ensure tracks are added before creating the answer
+                syncStreamToPeer();
+                
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                socket.emit('webrtc_signal', {
+                    pin: roomPin,
+                    desc: peerConnection.localDescription
+                });
+                console.log("[SYS] Spiritual frequencies aligned. Sending answer.");
+            } catch (e) {
+                console.error("Failed to finalize answer", e);
             }
         };
 
         window.startRitual = async () => {
             document.getElementById('ritual-overlay').style.display = 'none';
             try {
-                localAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                console.log("[SYS] Audio captured. Ready for channeling.");
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error("mediaDevices not supported");
+                }
+                localAudioStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                        latency: 0,
+                        channelCount: 1,
+                        sampleRate: 48000
+                    },
+                    video: false 
+                });
+                console.log("[SYS] Ultra-Low Latency Audio captured.");
+                
+                if (peerConnection && peerConnection.remoteDescription) {
+                    finalizeAnswer();
+                } else if (masterWantsAudio) {
+                    initiateOffer();
+                }
             } catch (err) {
                 console.warn("[SYS] Microphone denied or unavailable. Voice channeling disabled.");
+                alert("Microphone access could not be acquired. You can still use the board.");
             }
         };
 
