@@ -357,20 +357,22 @@
 
         // --- Master Control Logic ---
         const pad = document.getElementById('live-pad');
+        const svgModel = pad.querySelector('svg');
         const cursor = document.getElementById('cursor');
 
         const handleMove = (e) => {
             if (!selectedPin) return;
-            const rect = pad.getBoundingClientRect();
+            const bRect = svgModel.getBoundingClientRect(); // Use the SVG bounds
             const touch = e.touches ? e.touches[0] : e;
-            const x = (touch.clientX - rect.left) / rect.width;
-            const y = (touch.clientY - rect.top) / rect.height;
+            const x = (touch.clientX - bRect.left) / bRect.width;
+            const y = (touch.clientY - bRect.top) / bRect.height;
             const finalX = Math.max(0, Math.min(1, x));
             const finalY = Math.max(0, Math.min(1, y));
 
+            // Visual feedback: Update the cursor on the controller
             cursor.style.display = 'block';
-            cursor.style.left = `${finalX * 100}%`;
-            cursor.style.top = `${finalY * 100}%`;
+            cursor.style.left = `${(touch.clientX - pad.getBoundingClientRect().left)}px`;
+            cursor.style.top = `${(touch.clientY - pad.getBoundingClientRect().top)}px`;
 
             socket.emit('live_pos', {
                 pin: selectedPin,

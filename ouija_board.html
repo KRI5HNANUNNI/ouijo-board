@@ -533,9 +533,15 @@
                     liveMode = true; 
                     clearTimeout(activeMoveTimeout);
                     
-                    const rect = container.getBoundingClientRect();
-                    const targetX = data.x * rect.width;
-                    const targetY = data.y * rect.height;
+                    const bRect = svgBoard.getBoundingClientRect();
+                    const cRect = container.getBoundingClientRect();
+                    
+                    // Calculate board position relative to the container
+                    const relX = bRect.left - cRect.left;
+                    const relY = bRect.top - cRect.top;
+                    
+                    const targetX = relX + (data.x * bRect.width);
+                    const targetY = relY + (data.y * bRect.height) + offsetY;
                     
                     planchette.style.left = `${targetX}px`;
                     planchette.style.top = `${targetY}px`;
