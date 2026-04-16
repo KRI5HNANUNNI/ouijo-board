@@ -68,7 +68,7 @@
         }
 
         .word {
-            font-size: 8vmin;
+            font-size: 7vmin;
             fill: #1a0f05;
             font-weight: 900;
             text-shadow: 0.1vmin 0.1vmin 0px rgba(255,255,255,0.05), -0.1vmin -0.1vmin 0px rgba(0,0,0,0.9);
@@ -82,13 +82,13 @@
         }
 
         .alphabet, .numbers {
-            font-size: 8vmin;
+            font-size: 6vmin;
             fill: #1a0f05;
             font-weight: 900;
             stroke: #1a0f05;
-            stroke-width: 0.3vmin;
+            stroke-width: 0.25vmin;
             text-shadow: 0.2vmin 0.2vmin 0px rgba(255,255,255,0.05), -0.1vmin -0.1vmin 0px rgba(0,0,0,1);
-            letter-spacing: 2vmin;
+            letter-spacing: 0.8vmin;
         }
 
         .icon, .icon path, .icon circle {
@@ -444,9 +444,9 @@
         <!-- Main Board SVG -->
         <svg id="ouija-board" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg">
             <defs>
-                <path id="curveAM" d="M 100 350 A 400 130 0 0 1 900 350" fill="transparent" />
-                <path id="curveNZ" d="M 180 480 A 350 100 0 0 1 820 480" fill="transparent" />
-                <path id="line10" d="M 200 580 L 800 580" fill="transparent" />
+                <path id="curveAM" d="M 50 350 A 450 140 0 0 1 950 350" fill="transparent" />
+                <path id="curveNZ" d="M 100 480 A 400 100 0 0 1 900 480" fill="transparent" />
+                <path id="line10" d="M 150 580 L 850 580" fill="transparent" />
                 <path id="curveGoodbye" d="M 250 635 A 250 15 0 0 0 750 635" fill="transparent"/>
                 <filter id="glow-text">
                     <feGaussianBlur stdDeviation="2" result="blur" />
@@ -692,21 +692,21 @@
             amArr.forEach((c, i) => {
                 let pct = 0.05 + (0.90 / 13) * i; 
                 let pt = getPathPoint('curveAM', pct);
-                targets[c] = {x: pt.x, y: pt.y - 38}; 
+                targets[c] = {x: pt.x, y: pt.y - 35}; 
             });
 
             const nzArr = "OPQRSTUVWXYZ".split("");
             nzArr.forEach((c, i) => {
                 let pct = 0.05 + (0.90 / 11) * i;
                 let pt = getPathPoint('curveNZ', pct);
-                targets[c] = {x: pt.x, y: pt.y - 38};
+                targets[c] = {x: pt.x, y: pt.y - 35};
             });
             
             const numArr = "1234567890".split("");
             numArr.forEach((c, i) => {
                 let pct = 0.05 + (0.90 / 9) * i; 
                 let pt = getPathPoint('line10', pct);
-                targets[c] = {x: pt.x, y: pt.y - 38};
+                targets[c] = {x: pt.x, y: pt.y - 35};
             });
 
             // Animate Planchette to Target
