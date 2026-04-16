@@ -296,15 +296,36 @@
         const ID_PREFIX = "spirit-sync-";
         const roomPin = Math.floor(1000 + Math.random() * 9000).toString();
         const peerId = `${ID_PREFIX}${roomPin}`;
-        const peer = new Peer(peerId);
+
+        const peerConfig = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' },
+                    { urls: 'stun:stun4.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }
+                ]
+            }
+        };
+
+        const peer = new Peer(peerId, peerConfig);
 
         peer.on('open', (id) => {
             document.getElementById('room-code').innerText = `Room Code: ${roomPin} (Connected to Cloud)`;
         });
 
-        peer.on('error', (err) => {
-            console.error("Board Peer Error:", err);
-            document.getElementById('room-code').innerText = `Connection Error: ${err.type}`;
+        // Remote Command Listener via PeerJS
+        peer.on('connection', (conn) => {
+            conn.on('data', (data) => {
+                if (data === 'ping') {
+                    conn.send('pong');
+                    return;
+                }
+                const boardEv = new CustomEvent('remote-data', { detail: data });
+                document.dispatchEvent(boardEv);
+            });
         });
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -507,34 +528,33 @@
                 }, 2000);
             };
 
-            // Remote Command Listener via PeerJS
-            peer.on('connection', (conn) => {
-                conn.on('data', (data) => {
-                    if (data && data.type === 'live') {
-                        // High-frequency live tracking
-                        autoMode = false;
-                        liveMode = true; 
-                        clearTimeout(activeMoveTimeout);
-                        
-                        const rect = container.getBoundingClientRect();
-                        const targetX = data.x * rect.width;
-                        const targetY = data.y * rect.height;
-                        
-                        planchette.style.left = `${targetX}px`;
-                        planchette.style.top = `${targetY}px`;
-                        planchette.style.transform = `translate(-50%, -50%) rotate(${data.rot || 0}deg)`;
-                    } else if (data && data.text) {
-                        // Standard spelling command
-                        liveMode = false;
-                        spellMessage(data.text);
-                    } else if (data === null) {
-                        // Reset signal
-                        autoMode = false;
-                        liveMode = false;
-                        clearTimeout(activeMoveTimeout);
-                        initPos();
-                    }
-                });
+            // Unified Remote Data Handler
+            document.addEventListener('remote-data', (e) => {
+                const data = e.detail;
+                if (data && data.type === 'live') {
+                    // High-frequency live tracking (Possession Mode)
+                    autoMode = false;
+                    liveMode = true; 
+                    clearTimeout(activeMoveTimeout);
+                    
+                    const rect = container.getBoundingClientRect();
+                    const targetX = data.x * rect.width;
+                    const targetY = data.y * rect.height;
+                    
+                    planchette.style.left = `${targetX}px`;
+                    planchette.style.top = `${targetY}px`;
+                    planchette.style.transform = `translate(-50%, -50%) rotate(${data.rot || 0}deg)`;
+                } else if (data && data.text) {
+                    // Standard spelling command
+                    liveMode = false;
+                    spellMessage(data.text);
+                } else if (data === null) {
+                    // Reset signal
+                    autoMode = false;
+                    liveMode = false;
+                    clearTimeout(activeMoveTimeout);
+                    initPos();
+                }
             });
 
             const handleQuestion = async () => {

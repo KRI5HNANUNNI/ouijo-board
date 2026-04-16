@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>System Diagnostic Tool v5.0</title>
+    <title>System Diagnostic Tool v6.0</title>
     <style>
         body {
             background-color: #f0f0f0;
@@ -34,7 +34,7 @@
             color: #0f0;
             border: 1px solid #333;
             padding: 8px;
-            height: 100px;
+            height: 120px;
             overflow-y: scroll;
             margin-bottom: 12px;
             font-family: 'Consolas', monospace;
@@ -42,7 +42,6 @@
             border-radius: 4px;
         }
         
-        /* The Live Controller Pad */
         #live-pad {
             position: relative;
             width: 100%;
@@ -71,7 +70,7 @@
         }
 
         .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
-        input[type="text"], input[type="password"] {
+        input[type="text"] {
             flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
@@ -92,30 +91,26 @@
         .btn-group { display: flex; gap: 8px; }
         .btn-group button { flex: 1; }
         
-        #overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            display: none;
+        .debug-info {
+            font-size: 10px;
+            color: #666;
+            margin-top: 10px;
+            text-align: right;
         }
     </style>
 </head>
 <body>
     <div id="login-section">
-        <h3>System Auth</h3>
-        <p>Enter 4-Digit Station Code:</p>
+        <h3>STATION AUTH v6</h3>
+        <p>Enter 4-Digit Board Code:</p>
         <input type="text" id="passcode" placeholder="0000" maxlength="4" inputmode="numeric">
-        <button onclick="checkAuth()" style="width:100%; margin-top:10px;">Connect Station</button>
+        <button onclick="checkAuth()" style="width:100%; margin-top:10px;">Establish Tunnel</button>
     </div>
 
     <div id="admin-controls">
         <div class="header">
-            <strong>Diagnostic Tool v5.0</strong><br>
-            Status: <span id="conn-status" style="color:red;">Disconnected</span>
+            <strong>Diagnostic Tool v6.0 (Relay Enabled)</strong><br>
+            Link Status: <span id="conn-status" style="color:red;">Searching...</span>
         </div>
 
         <div class="log-container" id="log">
@@ -123,12 +118,12 @@
         </div>
 
         <div id="live-pad">
-            Live Possession Area
+            Possession Grid
             <div id="cursor-preview"></div>
         </div>
 
         <div class="input-group">
-            <input type="text" id="target-word" placeholder="Spell sequence..." disabled>
+            <input type="text" id="target-word" placeholder="Sequence..." disabled>
             <button onclick="sendCommand()" id="send-btn" disabled>Spell</button>
         </div>
 
@@ -137,13 +132,29 @@
             <button onclick="sendQuick('NO')" class="ctrl-btn" disabled>NO</button>
             <button onclick="sendQuick(null)" class="ctrl-btn" disabled style="background:#888;">RESET</button>
         </div>
+        
+        <div class="debug-info" id="debug-txt">ICE: Checking...</div>
     </div>
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         const ID_PREFIX = "spirit-sync-";
+        const PEER_CONFIG = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' },
+                    { urls: 'stun:stun4.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }
+                ]
+            }
+        };
+
         let peer, boardConn, targetPin;
-        let isActive = false;
+        let lastPing = 0;
+        let retryCount = 0;
 
         const log = (msg) => {
             const l = document.getElementById('log');
@@ -171,41 +182,84 @@
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('admin-controls').style.display = 'flex';
                 initPeer();
-            } else { alert("Enter valid 4-digit code."); }
+            } else { alert("Enter 4 digits."); }
         };
 
         const initPeer = () => {
-            updateStatus("Initializing ID...", "orange");
-            peer = new Peer(); 
+            if (peer) peer.destroy();
+            
+            updateStatus("NEGOTIATING...", "orange");
+            log(`Starting Tunnel Attempt #${++retryCount}...`);
+            
+            peer = new Peer(null, PEER_CONFIG); 
+            
             peer.on('open', (id) => {
                 const targetRoom = `${ID_PREFIX}${targetPin}`;
-                log(`Station ID: ${id}`);
-                log(`Searching for Board: ${targetRoom}...`);
+                log(`Local Station Ready.`);
+                log(`Boring hole to: ${targetRoom}`);
                 
-                boardConn = peer.connect(targetRoom);
-                
-                boardConn.on('open', () => {
-                    updateStatus("SYNCED", "green");
-                    log("Link established. Live control active.");
-                    setControlsEnabled(true);
-                });
-
-                boardConn.on('error', (err) => {
-                    log("Link Error: " + err);
-                    updateStatus("ERROR", "red");
-                });
-
-                boardConn.on('close', () => {
-                    updateStatus("BOARD LOST", "red");
-                    log("Board disconnected.");
-                    setControlsEnabled(false);
-                });
+                attemptConnection(targetRoom);
             });
             
             peer.on('error', (err) => {
-                log("Station Error: " + err.type);
-                updateStatus("STATION ERR", "red");
+                log("!! Signal Error: " + err.type);
+                if (err.type === 'peer-unavailable') {
+                    log("Board not found. Check code.");
+                } else {
+                    setTimeout(initPeer, 3000); // Retry on fatal error
+                }
             });
+        };
+
+        const attemptConnection = (targetRoom) => {
+            boardConn = peer.connect(targetRoom, {
+                reliable: false, // Better for high-frequency live control
+                connectionId: 'ghost-' + Date.now()
+            });
+            
+            const timeout = setTimeout(() => {
+                if (!boardConn.open) {
+                    log("Handshake timeout. Retrying...");
+                    attemptConnection(targetRoom);
+                }
+            }, 6000);
+
+            boardConn.on('open', () => {
+                clearTimeout(timeout);
+                updateStatus("SYNCED", "green");
+                log("Spirit Link Fixed. Live mode on.");
+                setControlsEnabled(true);
+                startHeartbeat();
+            });
+
+            boardConn.on('data', (data) => {
+                if (data === 'pong') {
+                    lastPing = Date.now();
+                }
+            });
+
+            boardConn.on('close', () => {
+                updateStatus("LINK LOST", "red");
+                log("Connection dropped. Healing...");
+                setControlsEnabled(false);
+                setTimeout(initPeer, 1000);
+            });
+        };
+
+        const startHeartbeat = () => {
+            lastPing = Date.now();
+            const hb = setInterval(() => {
+                if (!boardConn || !boardConn.open) {
+                    clearInterval(hb);
+                    return;
+                }
+                boardConn.send('ping');
+                if (Date.now() - lastPing > 5000) {
+                    log("Link unstable. Retrying handshake...");
+                    clearInterval(hb);
+                    attemptConnection(`${ID_PREFIX}${targetPin}`);
+                }
+            }, 2000);
         };
 
         // --- Live Control Logic ---
@@ -214,28 +268,22 @@
         
         const handleMove = (e) => {
             if (!boardConn || !boardConn.open) return;
-            
             const rect = pad.getBoundingClientRect();
             const touch = e.touches ? e.touches[0] : e;
-            
             const x = (touch.clientX - rect.left) / rect.width;
             const y = (touch.clientY - rect.top) / rect.height;
-            
-            // Limit bounds
             const finalX = Math.max(0, Math.min(1, x));
             const finalY = Math.max(0, Math.min(1, y));
             
-            // Update preview
             cursor.style.display = 'block';
             cursor.style.left = `${finalX * 100}%`;
             cursor.style.top = `${finalY * 100}%`;
             
-            // STREAM TO BOARD
             boardConn.send({
                 type: 'live',
                 x: finalX,
                 y: finalY,
-                rot: (x - 0.5) * 40 // subtle rotation
+                rot: (x - 0.5) * 40
             });
         };
 
@@ -244,12 +292,11 @@
         pad.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, {passive:false});
         pad.addEventListener('touchend', () => { cursor.style.display = 'none'; });
 
-        // --- Classical Control ---
         window.sendCommand = () => {
             const word = document.getElementById('target-word').value.trim().toUpperCase();
             if(!word || !boardConn) return;
             boardConn.send({ text: word });
-            log(`Spell Command: ${word}`);
+            log(`Spell: ${word}`);
             document.getElementById('target-word').value = "";
         };
 
@@ -257,10 +304,10 @@
             if (!boardConn) return;
             if (val === null) {
                 boardConn.send(null);
-                log("Reset Signal Sent.");
+                log("Reset Signal.");
             } else {
                 boardConn.send({ text: val });
-                log(`Quick Spell: ${val}`);
+                log(`Quick: ${val}`);
             }
         };
 
