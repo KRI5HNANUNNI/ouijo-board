@@ -136,28 +136,10 @@
         <div class="debug-info" id="debug-txt">ICE: Checking...</div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        // ============================================================== //
-        // 🛑 CRITICAL: PASTE YOUR FIREBASE CONFIG BELOW                  //
-        // ============================================================== //
-        const firebaseConfig = {
-            apiKey: "PLACEHOLDER",
-            authDomain: "PLACEHOLDER",
-            databaseURL: "PLACEHOLDER",
-            projectId: "PLACEHOLDER",
-            storageBucket: "PLACEHOLDER",
-            messagingSenderId: "PLACEHOLDER",
-            appId: "PLACEHOLDER"
-        };
-
-        let db;
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getDatabase(app);
-        } catch(e) { console.error("Firebase not configured"); }
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentRoom = null;
 
         const log = (msg) => {
             const l = document.getElementById('log');
@@ -178,29 +160,47 @@
             document.querySelectorAll('.ctrl-btn').forEach(btn => btn.disabled = !enabled);
         };
 
+        // UI Socket Listeners
+        socket.on('connect', () => {
+            log('Connected to Custom Backend Server.');
+        });
+        
+        socket.on('disconnect', () => {
+            updateStatus("OFFLINE", "red");
+            log('Disconnected from Server.');
+            setControlsEnabled(false);
+            currentRoom = null;
+        });
+
         window.checkAuth = () => {
             const code = document.getElementById('passcode').value.trim();
-            if(code.length === 4) { // Dummy check since we don't need room codes with Firebase anymore
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('admin-controls').style.display = 'flex';
+            if(code.length === 4) {
+                log(`Attempting to join Room: ${code}`);
+                updateStatus("NEGOTIATING...", "orange");
                 
-                if (db) {
-                    updateStatus("CONNECTED", "green");
-                    log("Link established via Firebase.");
-                    setControlsEnabled(true);
-                } else {
-                    updateStatus("FIREBASE REQUIRED", "red");
-                    log("ERROR: Firebase Config is missing.");
-                }
+                socket.emit('join_room', code, (response) => {
+                    if (response.success) {
+                        currentRoom = code;
+                        document.getElementById('login-section').style.display = 'none';
+                        document.getElementById('admin-controls').style.display = 'flex';
+                        updateStatus("CONNECTED", "green");
+                        log("Link established via Custom Server.");
+                        setControlsEnabled(true);
+                    } else {
+                        updateStatus("INVALID PIN", "red");
+                        log(`ERROR: ${response.error}. Is the board open?`);
+                        alert("Room not found. Check the code on the board.");
+                    }
+                });
             } else { alert("Enter a 4-digit code."); }
         };
 
-        // --- Live Control Logic (Firebase Stream) ---
+        // --- Live Control Logic (Socket.io Stream) ---
         const pad = document.getElementById('live-pad');
         const cursor = document.getElementById('cursor-preview');
         
         const handleMove = (e) => {
-            if (!db) return;
+            if (!currentRoom) return;
             const rect = pad.getBoundingClientRect();
             const touch = e.touches ? e.touches[0] : e;
             const x = (touch.clientX - rect.left) / rect.width;
@@ -212,9 +212,9 @@
             cursor.style.left = `${finalX * 100}%`;
             cursor.style.top = `${finalY * 100}%`;
             
-            // Push coordinates to Firebase
-            const liveRef = ref(db, 'board/live_pos');
-            set(liveRef, {
+            // Push via socket
+            socket.emit('live_pos', {
+                pin: currentRoom,
                 active: true,
                 x: finalX,
                 y: finalY,
@@ -224,9 +224,8 @@
 
         const handleRelease = () => {
             cursor.style.display = 'none';
-            if (!db) return;
-            // Tell board to let go
-            set(ref(db, 'board/live_pos'), { active: false });
+            if (!currentRoom) return;
+            socket.emit('live_pos', { pin: currentRoom, active: false });
         };
 
         pad.addEventListener('mousemove', handleMove);
@@ -235,26 +234,23 @@
         pad.addEventListener('touchend', handleRelease);
         pad.addEventListener('mouseleave', handleRelease);
 
-        // --- Classical Control (Firebase Stream) ---
+        // --- Classical Control (Socket Stream) ---
         window.sendCommand = () => {
             const word = document.getElementById('target-word').value.trim().toUpperCase();
-            if(!word || !db) return;
+            if(!word || !currentRoom) return;
             
-            set(ref(db, 'board/spell'), {
-                text: word,
-                timestamp: Date.now()
-            });
+            socket.emit('spell_word', { pin: currentRoom, text: word });
             log(`Spell: ${word}`);
             document.getElementById('target-word').value = "";
         };
 
         window.sendQuick = (val) => {
-            if (!db) return;
+            if (!currentRoom) return;
             if (val === null) {
-                set(ref(db, 'board/spell'), { reset: true, timestamp: Date.now() });
+                socket.emit('spell_word', { pin: currentRoom, reset: true });
                 log("Reset Signal sent.");
             } else {
-                set(ref(db, 'board/spell'), { text: val, timestamp: Date.now() });
+                socket.emit('spell_word', { pin: currentRoom, text: val });
                 log(`Quick: ${val}`);
             }
         };
