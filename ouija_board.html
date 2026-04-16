@@ -290,9 +290,10 @@
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
-        // Generate a random 4-digit room code
+        // Use a unique prefix to prevent collisions on the public PeerServer
+        const ID_PREFIX = "spirit-sync-";
         const roomPin = Math.floor(1000 + Math.random() * 9000).toString();
-        const peerId = `ouija-room-${roomPin}`;
+        const peerId = `${ID_PREFIX}${roomPin}`;
         const peer = new Peer(peerId);
 
         peer.on('open', (id) => {
@@ -300,6 +301,7 @@
         });
 
         peer.on('error', (err) => {
+            console.error("Board Peer Error:", err);
             document.getElementById('room-code').innerText = `Connection Error: ${err.type}`;
         });
 
@@ -314,12 +316,12 @@
             const askBtn = document.getElementById('ask-btn');
 
             let isDragging = false;
-            let startX = 0;
-            let startY = 0;
-            let initialLeft = 0;
-            let initialTop = 0;
             let autoMode = false;
+            let liveMode = false;
             let activeMoveTimeout = null;
+
+            // Coordinates cache
+            let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
 
             // Reset Planchette to center gracefully
             const initPos = () => {
@@ -508,14 +510,29 @@
             // Remote Command Listener via PeerJS
             peer.on('connection', (conn) => {
                 conn.on('data', (data) => {
-                    if (data && data.text) {
+                    if (data && data.type === 'live') {
+                        // High-frequency live tracking
+                        autoMode = false;
+                        liveMode = true; 
+                        clearTimeout(activeMoveTimeout);
+                        
+                        const rect = container.getBoundingClientRect();
+                        const targetX = data.x * rect.width;
+                        const targetY = data.y * rect.height;
+                        
+                        planchette.style.left = `${targetX}px`;
+                        planchette.style.top = `${targetY}px`;
+                        planchette.style.transform = `translate(-50%, -50%) rotate(${data.rot || 0}deg)`;
+                    } else if (data && data.text) {
+                        // Standard spelling command
+                        liveMode = false;
                         spellMessage(data.text);
                     } else if (data === null) {
-                        if(autoMode) {
-                            autoMode = false;
-                            clearTimeout(activeMoveTimeout);
-                            initPos();
-                        }
+                        // Reset signal
+                        autoMode = false;
+                        liveMode = false;
+                        clearTimeout(activeMoveTimeout);
+                        initPos();
                     }
                 });
             });
