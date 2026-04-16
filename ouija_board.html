@@ -110,6 +110,10 @@
             transition: left 0.8s ease-in-out, top 0.8s ease-in-out, transform 0.8s ease-in-out;
         }
 
+        #planchette.live-move {
+            transition: left 0.3s ease-out, top 0.3s ease-out, transform 0.3s ease-out;
+        }
+
         #spirit-mist {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -209,6 +213,180 @@
                 width: 98vw;
             }
         }
+
+        /* Overlay to capture user interaction for microphone */
+        #ritual-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #030200;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #d4af37;
+            font-family: 'Cinzel Decorative', serif;
+        }
+        
+        #ritual-overlay h1 {
+            font-size: 4vmin;
+            margin-bottom: 20px;
+            letter-spacing: 5px;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        #ritual-overlay p {
+            font-family: 'Courier New', monospace;
+            font-size: 2vmin;
+            color: #aaa;
+            margin-bottom: 40px;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        .begin-btn {
+            background: transparent;
+            border: 2px solid #d4af37;
+            color: #d4af37;
+            padding: 15px 40px;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s;
+            font-family: 'Cinzel Decorative', serif;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+        .begin-btn:hover {
+            background: #d4af37;
+            color: #000;
+            box-shadow: 0 0 30px #d4af37;
+        }
+
+
+        /* Rules Modal Styling */
+        .info-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(26, 15, 5, 0.8);
+            border: 2px solid #5a3f25;
+            color: #cca470;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 22px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 50;
+            transition: all 0.3s;
+            box-shadow: 0 0.5vmin 1.5vmin rgba(0,0,0,0.9);
+        }
+
+        .info-btn:hover {
+            background: #2a1508;
+            color: #e6b800;
+            border-color: #cca470;
+            box-shadow: 0 0 15px rgba(230, 184, 0, 0.3);
+            transform: scale(1.1);
+        }
+
+        .rules-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .rules-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .rules-modal.show .rules-content {
+            transform: scale(1);
+        }
+
+        .rules-content {
+            background: linear-gradient(to bottom, #1a0f05, #080402);
+            border: 2px solid #5a3f25;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 550px;
+            width: 90%;
+            color: #dfcba4;
+            box-shadow: 0 0 40px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.8);
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+            font-family: 'Cinzel Decorative', serif;
+        }
+
+        .rules-content h2 {
+            color: #d4af37;
+            text-align: center;
+            font-size: 2.2em;
+            margin-top: 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            padding-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .rules-content ul {
+            list-style-type: none;
+            padding: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            line-height: 1.7;
+            font-weight: bold;
+        }
+
+        .rules-content li {
+            margin-bottom: 20px;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .rules-content li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: #8b0000;
+            font-size: 1.2em;
+            top: -2px;
+        }
+
+        .close-rules {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 30px;
+            color: #888;
+            cursor: pointer;
+            transition: color 0.3s;
+            font-family: sans-serif;
+        }
+
+        .close-rules:hover {
+            color: #fff;
+        }
+        
+        .rules-content::-scrollbar { width: 8px; }
+        .rules-content::-webkit-scrollbar { width: 8px; }
+        .rules-content::-webkit-scrollbar-track { background: #1a0f05; }
+        .rules-content::-webkit-scrollbar-thumb { background: #5a3f25; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -246,17 +424,11 @@
                 <text x="780" y="160" class="word no" text-anchor="middle">N O</text>
                 
                 <!-- Alphabet -->
-                <text class="alphabet" text-anchor="middle" letter-spacing="5">
-                    <textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath>
-                </text>
-                <text class="alphabet" text-anchor="middle" letter-spacing="5">
-                    <textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath>
-                </text>
+                <text id="txt-am" class="alphabet" text-anchor="middle" letter-spacing="5"><textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath></text>
+                <text id="txt-nz" class="alphabet" text-anchor="middle" letter-spacing="5"><textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath></text>
                 
                 <!-- Numbers -->
-                <text class="numbers" text-anchor="middle" letter-spacing="10">
-                    <textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath>
-                </text>
+                <text id="txt-num" class="numbers" text-anchor="middle" letter-spacing="10"><textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath></text>
                 
                 <!-- GOOD BYE -->
                 <text class="word goodbye" text-anchor="middle" letter-spacing="5">
@@ -301,14 +473,42 @@
         <span id="room-code">Generating Room Code...</span>
     </div>
 
+    <!-- Info Button & Modal -->
+    <div class="info-btn" onclick="openRules()">i</div>
+
+    <div id="rulesModal" class="rules-modal">
+        <div class="rules-content">
+            <span class="close-rules" onclick="closeRules()">&times;</span>
+            <h2>Rules of the Board</h2>
+            <ul>
+                <li>Never play alone. The spirits are unpredictable and draw energy from numbers.</li>
+                <li>Never play in an unblessed area, such as a graveyard or site of tragedy.</li>
+                <li>Never ask the board when or how you are going to die. Some questions are not meant to be answered.</li>
+                <li>Always be respectful. Do not mock or provoke anything that comes through to communicate.</li>
+                <li>If the planchette swoops to the four corners of the board, a malevolent spirit has made contact. Close the session immediately.</li>
+                <li>If the planchette begins to count down through the numbers or the alphabet backwards, quickly end the session.</li>
+                <li>Always say "Goodbye" at the end of every session, otherwise the doorway remains perpetually open.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Initialization Modal for Audio Context -->
+    <div id="ritual-overlay">
+        <h1>THE SEANCE AWAITS</h1>
+        <p>To establish a connection with the other side, the board must detect the spiritual frequencies in your environment. Please allow access when prompted.</p>
+        <button class="begin-btn" onclick="startRitual()">BEGIN RITUAL</button>
+    </div>
+
     <div id="message-display"></div>
 
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
         const roomPin = Math.floor(1000 + Math.random() * 9000).toString();
         
-        // Connect to the permanent Render Server
-        const socket = io('https://ouijo-board.onrender.com');
+        // Connect to the server - try current origin, fallback to Render
+        const socket = (window.location.protocol.startsWith('http')) 
+            ? io() 
+            : io('https://ouijo-board.onrender.com');
 
         socket.on('connect', () => {
             document.getElementById('room-code').innerText = `Room Code: ${roomPin} (Connected to Custom Server)`;
@@ -425,7 +625,7 @@
             document.addEventListener('touchend', onPointerUp);
 
             // Mathematical Mapping of Letters to inner SVG viewBox (1000x650)
-            const targets = {
+            let targets = {
                 'YES': {x: 220, y: 105},
                 'NO': {x: 780, y: 105},
                 'GOODBYE': {x: 500, y: 525}
@@ -460,6 +660,47 @@
                 let pt = getPathPoint('line10', pct);
                 targets[c] = {x: pt.x, y: pt.y - 55};
             });
+
+            // Precise Optical Alignment (Overrides mathematical estimation)
+            // Uses WebKit/SVG native character extraction for exact rendered centers
+            const calculatePreciseTargets = () => {
+                const mapSVGText = (elementId) => {
+                    const textEl = document.getElementById(elementId);
+                    if (!textEl) return;
+                    
+                    // With single-line HTML, textContent guarantees 1:1 mapping with getExtentOfChar
+                    const textContent = textEl.textContent || textEl.innerText;
+                    const numChars = Math.min(textContent.length, textEl.getNumberOfChars ? textEl.getNumberOfChars() : textContent.length);
+
+                    for (let i = 0; i < numChars; i++) {
+                        const char = textContent[i];
+                        if (char && char.trim() !== '') {
+                            try {
+                                const extent = textEl.getExtentOfChar(i);
+                                // Check if SVG returns an actually valid rect
+                                if (extent && extent.height > 0) {
+                                    const cx = extent.x + extent.width / 2;
+                                    const cy = extent.y + extent.height / 2;
+                                    targets[char] = { x: cx, y: cy - 55 };
+                                }
+                            } catch (err) {}
+                        }
+                    }
+                };
+
+                mapSVGText('txt-am');
+                mapSVGText('txt-nz');
+                mapSVGText('txt-num');
+                
+                // Fallback math override if some browser entirely fails
+                if (!targets['A']) targets['A'] = {x: 153.2, y: 228.6};
+                if (!targets['Z']) targets['Z'] = {x: 820.6, y: 350.2};
+            };
+
+            calculatePreciseTargets();
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(calculatePreciseTargets);
+            }
 
             // Animate Planchette to Target
             const moveToTarget = (svgX, svgY) => {
@@ -533,15 +774,19 @@
                     liveMode = true; 
                     clearTimeout(activeMoveTimeout);
                     
-                    const bRect = svgBoard.getBoundingClientRect();
+                    planchette.classList.remove('auto-move');
+                    planchette.classList.add('live-move');
+                    planchette.style.transition = ''; // clear any inline transitions
+                    
                     const cRect = container.getBoundingClientRect();
                     
-                    // Calculate board position relative to the container
-                    const relX = bRect.left - cRect.left;
-                    const relY = bRect.top - cRect.top;
+                    // Sanitize coordinates
+                    const x = parseFloat(data.x);
+                    const y = parseFloat(data.y);
+                    if (isNaN(x) || isNaN(y)) return;
                     
-                    const targetX = relX + (data.x * bRect.width);
-                    const targetY = relY + (data.y * bRect.height) + offsetY;
+                    const targetX = x * cRect.width;
+                    const targetY = y * cRect.height;
                     
                     planchette.style.left = `${targetX}px`;
                     planchette.style.top = `${targetY}px`;
@@ -549,6 +794,7 @@
                 } else if (liveMode) {
                     // Touch released, reset slowly
                     liveMode = false;
+                    planchette.classList.remove('live-move');
                     initPos();
                 }
             });
@@ -566,6 +812,9 @@
                 }
             });
 
+            // 3. WebRTC Audio Signaling Listener
+            socket.on('webrtc_signal', handleSignalingData);
+
             window.addEventListener('resize', () => {
                 if (!autoMode && !isDragging) {
                     initPos();
@@ -573,6 +822,77 @@
             });
 
         });
+
+        // ============================================================== //
+        // WEBRTC & MICROPHONE LOGIC
+        // ============================================================== //
+        let localAudioStream = null;
+        let peerConnection = null;
+
+        const stunConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        const setupWebRTC = () => {
+            peerConnection = new RTCPeerConnection(stunConfig);
+            
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('webrtc_signal', {
+                        pin: roomPin,
+                        candidate: event.candidate
+                    });
+                }
+            };
+
+            if (localAudioStream) {
+                localAudioStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localAudioStream);
+                });
+            }
+        };
+
+        const handleSignalingData = async (data) => {
+            if (data.desc) {
+                if (data.desc.type === 'offer') {
+                    if (!peerConnection) setupWebRTC();
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.desc));
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+                    socket.emit('webrtc_signal', {
+                        pin: roomPin,
+                        desc: peerConnection.localDescription
+                    });
+                }
+            } else if (data.candidate && peerConnection) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } else if (data.request_audio) {
+                if (!peerConnection) setupWebRTC();
+                console.log("[SYS] Master requested audio link.");
+            }
+        };
+
+        window.startRitual = async () => {
+            document.getElementById('ritual-overlay').style.display = 'none';
+            try {
+                localAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                console.log("[SYS] Audio captured. Ready for channeling.");
+            } catch (err) {
+                console.warn("[SYS] Microphone denied or unavailable. Voice channeling disabled.");
+            }
+        };
+
+        // Rules Modal Functions
+        function openRules() {
+            document.getElementById('rulesModal').classList.add('show');
+        }
+
+        function closeRules() {
+            document.getElementById('rulesModal').classList.remove('show');
+        }
     </script>
 </body>
 </html>

@@ -57,21 +57,30 @@ io.on('connection', (socket) => {
 
     // Handle Live Relays
     socket.on('live_pos', (data) => {
+        if (!data.pin) return;
         if (data.pin === 'GLOBAL') {
-            io.emit('board_live_pos', data); // Broadcast to EVERYONE
+            io.emit('board_live_pos', data);
         } else {
-            socket.to(`room_${data.pin}`).emit('board_live_pos', data);
+            io.to(`room_${data.pin}`).emit('board_live_pos', data);
         }
     });
 
     // Handle Spell Relays
     socket.on('spell_word', (data) => {
+        if (!data.pin) return;
+        console.log(`[SYS] Relay spell [${data.pin}]: ${data.text || 'RESET'}`);
         if (data.pin === 'GLOBAL') {
-            io.emit('board_spell', data); // Mass Possession
+            io.emit('board_spell', data);
         } else {
-            socket.to(`room_${data.pin}`).emit('board_spell', data);
+            io.to(`room_${data.pin}`).emit('board_spell', data);
         }
-        console.log(`[SYS] ${data.pin} spelling: ${data.text || data.reset}`);
+    });
+
+    // Handle WebRTC Audio Signaling
+    socket.on('webrtc_signal', (data) => {
+        if (!data.pin) return;
+        // Relay signaling packet to the other clients in the room (sender excluded)
+        socket.to(`room_${data.pin}`).emit('webrtc_signal', data);
     });
 
     socket.on('disconnect', () => {
