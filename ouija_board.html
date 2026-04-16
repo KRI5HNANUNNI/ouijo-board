@@ -81,10 +81,12 @@
         }
 
         .alphabet, .numbers {
-            font-size: 4vmin;
+            font-size: 5vmin;
             fill: #1a0f05;
-            font-weight: bold;
-            text-shadow: 0.1vmin 0.1vmin 0px rgba(255,255,255,0.05), -0.1vmin -0.1vmin 0px rgba(0,0,0,0.9);
+            font-weight: 900;
+            stroke: #1a0f05;
+            stroke-width: 0.1vmin;
+            text-shadow: 0.15vmin 0.15vmin 0px rgba(255,255,255,0.05), -0.1vmin -0.1vmin 0px rgba(0,0,0,1);
         }
 
         .icon, .icon path, .icon circle {
@@ -427,23 +429,21 @@
             amArr.forEach((c, i) => {
                 let pct = 0.22 + (0.56 / 13) * i; 
                 let pt = getPathPoint('curveAM', pct);
-                targets[c] = {x: pt.x, y: pt.y - 15}; // Offset slightly so hole aligns with center
+                targets[c] = {x: pt.x, y: pt.y - 35}; 
             });
 
-            // O-Z Mapping
             const nzArr = "OPQRSTUVWXYZ".split("");
             nzArr.forEach((c, i) => {
                 let pct = 0.18 + (0.64 / 11) * i;
                 let pt = getPathPoint('curveNZ', pct);
-                targets[c] = {x: pt.x, y: pt.y - 15};
+                targets[c] = {x: pt.x, y: pt.y - 35};
             });
             
-            // Numbers Mapping
             const numArr = "1234567890".split("");
             numArr.forEach((c, i) => {
                 let pct = 0.25 + (0.50 / 9) * i; 
                 let pt = getPathPoint('line10', pct);
-                targets[c] = {x: pt.x, y: pt.y - 15};
+                targets[c] = {x: pt.x, y: pt.y - 35};
             });
 
             // Animate Planchette to Target
