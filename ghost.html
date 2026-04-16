@@ -136,25 +136,28 @@
         <div class="debug-info" id="debug-txt">ICE: Checking...</div>
     </div>
 
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script>
-        const ID_PREFIX = "spirit-sync-";
-        const PEER_CONFIG = {
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' },
-                    { urls: 'stun:stun4.l.google.com:19302' },
-                    { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }
-                ]
-            }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // ============================================================== //
+        // 🛑 CRITICAL: PASTE YOUR FIREBASE CONFIG BELOW                  //
+        // ============================================================== //
+        const firebaseConfig = {
+            apiKey: "PLACEHOLDER",
+            authDomain: "PLACEHOLDER",
+            databaseURL: "PLACEHOLDER",
+            projectId: "PLACEHOLDER",
+            storageBucket: "PLACEHOLDER",
+            messagingSenderId: "PLACEHOLDER",
+            appId: "PLACEHOLDER"
         };
 
-        let peer, boardConn, targetPin;
-        let lastPing = 0;
-        let retryCount = 0;
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getDatabase(app);
+        } catch(e) { console.error("Firebase not configured"); }
 
         const log = (msg) => {
             const l = document.getElementById('log');
@@ -177,97 +180,27 @@
 
         window.checkAuth = () => {
             const code = document.getElementById('passcode').value.trim();
-            if(code.length === 4) {
-                targetPin = code;
+            if(code.length === 4) { // Dummy check since we don't need room codes with Firebase anymore
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('admin-controls').style.display = 'flex';
-                initPeer();
-            } else { alert("Enter 4 digits."); }
-        };
-
-        const initPeer = () => {
-            if (peer) peer.destroy();
-            
-            updateStatus("NEGOTIATING...", "orange");
-            log(`Starting Tunnel Attempt #${++retryCount}...`);
-            
-            peer = new Peer(null, PEER_CONFIG); 
-            
-            peer.on('open', (id) => {
-                const targetRoom = `${ID_PREFIX}${targetPin}`;
-                log(`Local Station Ready.`);
-                log(`Boring hole to: ${targetRoom}`);
                 
-                attemptConnection(targetRoom);
-            });
-            
-            peer.on('error', (err) => {
-                log("!! Signal Error: " + err.type);
-                if (err.type === 'peer-unavailable') {
-                    log("Board not found. Check code.");
+                if (db) {
+                    updateStatus("CONNECTED", "green");
+                    log("Link established via Firebase.");
+                    setControlsEnabled(true);
                 } else {
-                    setTimeout(initPeer, 3000); // Retry on fatal error
+                    updateStatus("FIREBASE REQUIRED", "red");
+                    log("ERROR: Firebase Config is missing.");
                 }
-            });
+            } else { alert("Enter a 4-digit code."); }
         };
 
-        const attemptConnection = (targetRoom) => {
-            boardConn = peer.connect(targetRoom, {
-                reliable: false, // Better for high-frequency live control
-                connectionId: 'ghost-' + Date.now()
-            });
-            
-            const timeout = setTimeout(() => {
-                if (!boardConn.open) {
-                    log("Handshake timeout. Retrying...");
-                    attemptConnection(targetRoom);
-                }
-            }, 6000);
-
-            boardConn.on('open', () => {
-                clearTimeout(timeout);
-                updateStatus("SYNCED", "green");
-                log("Spirit Link Fixed. Live mode on.");
-                setControlsEnabled(true);
-                startHeartbeat();
-            });
-
-            boardConn.on('data', (data) => {
-                if (data === 'pong') {
-                    lastPing = Date.now();
-                }
-            });
-
-            boardConn.on('close', () => {
-                updateStatus("LINK LOST", "red");
-                log("Connection dropped. Healing...");
-                setControlsEnabled(false);
-                setTimeout(initPeer, 1000);
-            });
-        };
-
-        const startHeartbeat = () => {
-            lastPing = Date.now();
-            const hb = setInterval(() => {
-                if (!boardConn || !boardConn.open) {
-                    clearInterval(hb);
-                    return;
-                }
-                boardConn.send('ping');
-                if (Date.now() - lastPing > 5000) {
-                    log("Link unstable. Retrying handshake...");
-                    clearInterval(hb);
-                    attemptConnection(`${ID_PREFIX}${targetPin}`);
-                }
-            }, 2000);
-        };
-
-        // --- Live Control Logic ---
+        // --- Live Control Logic (Firebase Stream) ---
         const pad = document.getElementById('live-pad');
         const cursor = document.getElementById('cursor-preview');
         
         const handleMove = (e) => {
-            if (!boardConn || !boardConn.open) return;
+            if (!db) return;
             const rect = pad.getBoundingClientRect();
             const touch = e.touches ? e.touches[0] : e;
             const x = (touch.clientX - rect.left) / rect.width;
@@ -279,34 +212,49 @@
             cursor.style.left = `${finalX * 100}%`;
             cursor.style.top = `${finalY * 100}%`;
             
-            boardConn.send({
-                type: 'live',
+            // Push coordinates to Firebase
+            const liveRef = ref(db, 'board/live_pos');
+            set(liveRef, {
+                active: true,
                 x: finalX,
                 y: finalY,
                 rot: (x - 0.5) * 40
             });
         };
 
+        const handleRelease = () => {
+            cursor.style.display = 'none';
+            if (!db) return;
+            // Tell board to let go
+            set(ref(db, 'board/live_pos'), { active: false });
+        };
+
         pad.addEventListener('mousemove', handleMove);
         pad.addEventListener('touchstart', (e) => { e.preventDefault(); handleMove(e); }, {passive:false});
         pad.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, {passive:false});
-        pad.addEventListener('touchend', () => { cursor.style.display = 'none'; });
+        pad.addEventListener('touchend', handleRelease);
+        pad.addEventListener('mouseleave', handleRelease);
 
+        // --- Classical Control (Firebase Stream) ---
         window.sendCommand = () => {
             const word = document.getElementById('target-word').value.trim().toUpperCase();
-            if(!word || !boardConn) return;
-            boardConn.send({ text: word });
+            if(!word || !db) return;
+            
+            set(ref(db, 'board/spell'), {
+                text: word,
+                timestamp: Date.now()
+            });
             log(`Spell: ${word}`);
             document.getElementById('target-word').value = "";
         };
 
         window.sendQuick = (val) => {
-            if (!boardConn) return;
+            if (!db) return;
             if (val === null) {
-                boardConn.send(null);
-                log("Reset Signal.");
+                set(ref(db, 'board/spell'), { reset: true, timestamp: Date.now() });
+                log("Reset Signal sent.");
             } else {
-                boardConn.send({ text: val });
+                set(ref(db, 'board/spell'), { text: val, timestamp: Date.now() });
                 log(`Quick: ${val}`);
             }
         };

@@ -290,43 +290,27 @@
 
     <div id="message-display"></div>
 
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script>
-        // Use a unique prefix to prevent collisions on the public PeerServer
-        const ID_PREFIX = "spirit-sync-";
-        const roomPin = Math.floor(1000 + Math.random() * 9000).toString();
-        const peerId = `${ID_PREFIX}${roomPin}`;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const peerConfig = {
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' },
-                    { urls: 'stun:stun4.l.google.com:19302' },
-                    { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }
-                ]
-            }
+        // ============================================================== //
+        // 🛑 CRITICAL: PASTE YOUR FIREBASE CONFIG BELOW                  //
+        // ============================================================== //
+        const firebaseConfig = {
+            apiKey: "PLACEHOLDER",
+            authDomain: "PLACEHOLDER",
+            databaseURL: "PLACEHOLDER",
+            projectId: "PLACEHOLDER",
+            storageBucket: "PLACEHOLDER",
+            messagingSenderId: "PLACEHOLDER",
+            appId: "PLACEHOLDER"
         };
 
-        const peer = new Peer(peerId, peerConfig);
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        peer.on('open', (id) => {
-            document.getElementById('room-code').innerText = `Room Code: ${roomPin} (Connected to Cloud)`;
-        });
-
-        // Remote Command Listener via PeerJS
-        peer.on('connection', (conn) => {
-            conn.on('data', (data) => {
-                if (data === 'ping') {
-                    conn.send('pong');
-                    return;
-                }
-                const boardEv = new CustomEvent('remote-data', { detail: data });
-                document.dispatchEvent(boardEv);
-            });
-        });
+        document.getElementById('room-code').innerText = "Connected via Firebase Cloud Sync";
 
         document.addEventListener('DOMContentLoaded', () => {
             const planchette = document.getElementById('planchette');
@@ -528,11 +512,15 @@
                 }, 2000);
             };
 
-            // Unified Remote Data Handler
-            document.addEventListener('remote-data', (e) => {
-                const data = e.detail;
-                if (data && data.type === 'live') {
-                    // High-frequency live tracking (Possession Mode)
+            // ============================================================== //
+            // FIREBASE LISTENERS
+            // ============================================================== //
+            
+            // 1. Live Possession Coordinates Listener
+            const liveRef = ref(db, 'board/live_pos');
+            onValue(liveRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.active) {
                     autoMode = false;
                     liveMode = true; 
                     clearTimeout(activeMoveTimeout);
@@ -544,16 +532,28 @@
                     planchette.style.left = `${targetX}px`;
                     planchette.style.top = `${targetY}px`;
                     planchette.style.transform = `translate(-50%, -50%) rotate(${data.rot || 0}deg)`;
-                } else if (data && data.text) {
-                    // Standard spelling command
+                } else if (liveMode) {
+                    // Touch released, reset slowly
+                    liveMode = false;
+                    initPos();
+                }
+            });
+
+            // 2. Spell Action Listener
+            const spellRef = ref(db, 'board/spell');
+            onValue(spellRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.text) {
                     liveMode = false;
                     spellMessage(data.text);
-                } else if (data === null) {
-                    // Reset signal
+                    // Tell Firebase we read it so it doesn't repeat on refresh
+                    set(spellRef, null);
+                } else if (data && data.reset) {
                     autoMode = false;
                     liveMode = false;
                     clearTimeout(activeMoveTimeout);
                     initPos();
+                    set(spellRef, null);
                 }
             });
 
