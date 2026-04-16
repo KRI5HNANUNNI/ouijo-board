@@ -67,8 +67,8 @@
 <body>
     <div id="login-section">
         <h3>Auth Required</h3>
-        <p>Enter Access Key:</p>
-        <input type="password" id="passcode" placeholder="Key...">
+        <p>Enter 4-Digit Room Code (from Board):</p>
+        <input type="text" id="passcode" placeholder="0000" maxlength="4">
         <button onclick="checkAuth()">Login</button>
     </div>
 
@@ -104,15 +104,17 @@
     <script>
         let peer;
         let boardConn;
+        let targetPin = "";
 
         window.checkAuth = () => {
-            const code = document.getElementById('passcode').value;
-            if(code === 'spirit99') { 
+            const code = document.getElementById('passcode').value.trim();
+            if(code.length === 4) { 
+                targetPin = code;
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('admin-controls').style.display = 'block';
                 initPeer();
             } else {
-                alert("Invalid Key");
+                alert("Please enter a valid 4-digit room code.");
             }
         };
 
@@ -125,8 +127,9 @@
         const initPeer = () => {
             peer = new Peer(); 
             peer.on('open', (id) => {
-                log(`Auth successful. Target: kri5hnanunni-ouija-board-99`);
-                boardConn = peer.connect('kri5hnanunni-ouija-board-99');
+                const targetRoom = `ouija-room-${targetPin}`;
+                log(`Auth successful. Hunting target: ${targetRoom}`);
+                boardConn = peer.connect(targetRoom);
                 
                 boardConn.on('open', () => {
                     document.getElementById('conn-status').innerText = 'Connected via DirectPeer';

@@ -282,13 +282,26 @@
         <button id="auto-btn">Random</button>
         <button id="reset-btn">Rest</button>
     </div>
+    <div style="text-align: center; color: rgba(255,255,255,0.3); font-family: monospace; margin-top: 10px;">
+        <span id="room-code">Generating Room Code...</span>
+    </div>
 
     <div id="message-display"></div>
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
-        // Start PeerJS client with a static known ID for this session
-        const peer = new Peer('kri5hnanunni-ouija-board-99');
+        // Generate a random 4-digit room code
+        const roomPin = Math.floor(1000 + Math.random() * 9000).toString();
+        const peerId = `ouija-room-${roomPin}`;
+        const peer = new Peer(peerId);
+
+        peer.on('open', (id) => {
+            document.getElementById('room-code').innerText = `Room Code: ${roomPin} (Connected to Cloud)`;
+        });
+
+        peer.on('error', (err) => {
+            document.getElementById('room-code').innerText = `Connection Error: ${err.type}`;
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             const planchette = document.getElementById('planchette');
