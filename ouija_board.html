@@ -99,8 +99,8 @@
 
         #planchette {
             position: absolute;
-            width: 12%;
-            height: 23%;
+            width: 15%;
+            height: 28%;
             transform-origin: center center;
             z-index: 100;
             pointer-events: auto;
@@ -690,23 +690,21 @@
             // A-N Mapping (14 characters, center 50%) -> roughly 15% to 85% of path
             const amArr = "ABCDEFGHIJKLMN".split("");
             amArr.forEach((c, i) => {
-                let pct = 0.18 + (0.64 / 13) * i; 
-                let pt = getPathPoint('curveAM', pct);
-                targets[c] = {x: pt.x, y: pt.y - 12}; 
+                targets[c] = {x: pt.x, y: pt.y - 42}; 
             });
 
             const nzArr = "OPQRSTUVWXYZ".split("");
             nzArr.forEach((c, i) => {
                 let pct = 0.15 + (0.70 / 11) * i;
                 let pt = getPathPoint('curveNZ', pct);
-                targets[c] = {x: pt.x, y: pt.y - 12};
+                targets[c] = {x: pt.x, y: pt.y - 42};
             });
             
             const numArr = "1234567890".split("");
             numArr.forEach((c, i) => {
                 let pct = 0.16 + (0.68 / 9) * i; 
                 let pt = getPathPoint('line10', pct);
-                targets[c] = {x: pt.x, y: pt.y - 12};
+                targets[c] = {x: pt.x, y: pt.y - 42};
             });
 
             // Animate Planchette to Target
