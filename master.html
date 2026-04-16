@@ -496,7 +496,7 @@
             document.getElementById('btn-reconnect').style.display = 'none';
         }
 
-        function startListening() {
+        async function startListening() {
             if (!selectedPin || selectedPin === 'GLOBAL') return;
             if (isListening) return;
 
