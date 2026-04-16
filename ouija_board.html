@@ -297,13 +297,6 @@
         </div>
     </div>
     
-    <!-- Controls and Text Message -->
-    <div id="controls">
-        <input type="text" id="question-input" placeholder="Ask the spirits..." autocomplete="off">
-        <button id="ask-btn">Ask</button>
-        <button id="auto-btn">Random</button>
-        <button id="reset-btn">Rest</button>
-    </div>
     <div style="text-align: center; color: rgba(255,255,255,0.3); font-family: monospace; margin-top: 10px;">
         <span id="room-code">Generating Room Code...</span>
     </div>
@@ -336,12 +329,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const planchette = document.getElementById('planchette');
             const container = document.getElementById('board-container');
-            const autoBtn = document.getElementById('auto-btn');
-            const resetBtn = document.getElementById('reset-btn');
             const msgDisplay = document.getElementById('message-display');
             const svgBoard = document.getElementById('ouija-board');
-            const questionInput = document.getElementById('question-input');
-            const askBtn = document.getElementById('ask-btn');
 
             let isDragging = false;
             let autoMode = false;
@@ -571,54 +560,6 @@
                 }
             });
 
-            const handleQuestion = async () => {
-                if(autoMode) return;
-                const question = questionInput.value.trim();
-                if(!question) return;
-                
-                questionInput.value = "";
-                questionInput.disabled = true;
-                
-                const answers = [
-                     "YES", "NO", "MAYBE", "DEATH", "RUN", "SOON", "NEVER", "UNKNOWN", 
-                     "IT IS CERTAIN", "DO NOT ASK", "I CANNOT SAY", "THE SPIRITS LAUGH", "666"
-                ];
-                const msg = answers[Math.floor(Math.random() * answers.length)];
-                
-                // Short pause before the spirit answers
-                await sleep(1000);
-                await spellMessage(msg);
-                
-                questionInput.disabled = false;
-            };
-
-            askBtn.addEventListener('click', handleQuestion);
-            questionInput.addEventListener('keypress', (e) => {
-                if(e.key === 'Enter') handleQuestion();
-            });
-
-            // Button Events
-            autoBtn.addEventListener('click', () => {
-                if(autoMode) return;
-                const messages = [
-                     "HELLO", "GHOST", "I SEE YOU", "NO", "RUN", "YES", "SPIRIT", "DEATH",
-                     "BEHIND YOU", "666", "HELP", "DARKNESS", "SOUL", "DEMON", "ALONE", "COLD"
-                ];
-                const msg = messages[Math.floor(Math.random() * messages.length)];
-                spellMessage(msg);
-            });
-
-            resetBtn.addEventListener('click', () => {
-                autoMode = false;
-                clearTimeout(activeMoveTimeout);
-                initPos();
-            });
-
-            // Make 'YES', 'NO', 'GOODBYE' clickable on the SVG
-            document.querySelector('.word.yes').addEventListener('click', () => { if(!autoMode) spellMessage('YES'); });
-            document.querySelector('.word.no').addEventListener('click', () => { if(!autoMode) spellMessage('NO'); });
-            document.querySelector('.word.goodbye').addEventListener('click', () => { if(!autoMode) spellMessage('GOODBYE'); });
-            
             window.addEventListener('resize', () => {
                 if (!autoMode && !isDragging) {
                     initPos();
