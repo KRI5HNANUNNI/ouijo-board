@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spirit Radar | Global Master Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Outfit:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark: #0a0a0c;
+            --glow: rgba(212, 175, 55, 0.3);
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--dark);
+            color: #e0e0e0;
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a0c 100%);
+        }
+
+        header {
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 2.5rem;
+            color: var(--gold);
+            margin: 0;
+            text-shadow: 0 0 20px var(--glow);
+            letter-spacing: 4px;
+        }
+
+        .radar-status {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .main-container {
+            width: 90%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            padding: 20px;
+        }
+
+        /* Active Rooms List */
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            padding: 25px;
+        }
+
+        .card h2 {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.2rem;
+            margin-top: 0;
+            color: var(--gold);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 10px;
+        }
+
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .room-item {
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .room-item:hover {
+            background: var(--gold);
+            color: black;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--glow);
+        }
+
+        .room-item.active {
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .room-pin {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .room-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        /* Global Control Panel */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .pad-container {
+            aspect-ratio: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #live-pad {
+            width: 100%;
+            height: 100%;
+        }
+
+        #cursor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--gold);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            box-shadow: 0 0 15px var(--gold);
+            display: none;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            padding: 12px;
+            color: white;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        .btn {
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Cinzel Decorative', cursive;
+            transition: 0.3s;
+        }
+
+        .btn-gold {
+            background: var(--gold);
+            color: black;
+        }
+
+        .btn-gold:hover {
+            box-shadow: 0 0 20px var(--glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-red {
+            background: #8b0000;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .btn-red:hover {
+            background: #ff0000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+
+        .global-badge {
+            display: inline-block;
+            padding: 40x 10px;
+            background: #ff0000;
+            color: white;
+            font-size: 0.6rem;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 800px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SPIRIT RADAR</h1>
+        <div class="radar-status" id="status">Scanning the Void...</div>
+    </header>
+
+    <div class="main-container">
+        <!-- Active Sessions Registry -->
+        <div class="card">
+            <h2>Active Board Registry</h2>
+            <div class="room-grid" id="room-list">
+                <!-- Rooms will appear here -->
+            </div>
+            <div id="no-rooms" style="text-align: center; padding: 40px; opacity: 0.3;">
+                No active spirits detected...
+            </div>
+        </div>
+
+        <!-- Master Controller -->
+        <div class="controls">
+            <div class="card">
+                <div id="target-label" style="color: var(--gold); font-size: 0.8rem; margin-bottom: 10px;">TARGET: NONE SELECTED</div>
+                
+                <div class="pad-container">
+                    <div id="live-pad"></div>
+                    <div id="cursor"></div>
+                </div>
+
+                <div class="input-group" style="margin-top: 20px;">
+                    <input type="text" id="spell-input" placeholder="Enter message...">
+                    <button class="btn btn-gold" onclick="sendSpell()">Spell Message</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-gold" style="flex: 1;" onclick="sendQuick('YES')">YES</button>
+                        <button class="btn btn-gold" style="flex: 1;" onclick="sendQuick('NO')">NO</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-red" onclick="massPossession()">☠️ MASS POSSESSION ☠️</button>
+                <div style="font-size: 0.6rem; text-align: center; margin-top: 10px; opacity: 0.4;">WARNING: Controls ALL boards simultaneously</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        const socket = io('https://ouijo-board.onrender.com');
+        let selectedPin = null;
+
+        socket.on('connect', () => {
+            document.getElementById('status').innerText = "RADAR ONLINE - LISTENING...";
+            socket.emit('request_radar');
+        });
+
+        socket.on('radar_update', (rooms) => {
+            const list = document.getElementById('room-list');
+            const placeholder = document.getElementById('no-rooms');
+            list.innerHTML = '';
+            
+            if (rooms.length === 0) {
+                placeholder.style.display = 'block';
+            } else {
+                placeholder.style.display = 'none';
+                rooms.forEach(pin => {
+                    const item = document.createElement('div');
+                    item.className = `room-item ${selectedPin === pin ? 'active' : ''}`;
+                    item.onclick = () => selectRoom(pin, item);
+                    item.innerHTML = `
+                        <span class="room-pin">${pin}</span>
+                        <span class="room-label">Board Active</span>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+        });
+
+        function selectRoom(pin, element) {
+            selectedPin = pin;
+            document.querySelectorAll('.room-item').forEach(i => i.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('target-label').innerText = `TARGET: BOARD ${pin}`;
+        }
+
+        function massPossession() {
+            selectedPin = 'GLOBAL';
+            document.getElementById('target-label').innerHTML = `<span class="global-badge">ACTIVE</span> TARGET: EVERYONE`;
+            document.querySelectorAll('.room-item').forEach(i => i.classList.remove('active'));
+        }
+
+        // --- Master Control Logic ---
+        const pad = document.getElementById('live-pad');
+        const cursor = document.getElementById('cursor');
+
+        const handleMove = (e) => {
+            if (!selectedPin) return;
+            const rect = pad.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            const x = (touch.clientX - rect.left) / rect.width;
+            const y = (touch.clientY - rect.top) / rect.height;
+            const finalX = Math.max(0, Math.min(1, x));
+            const finalY = Math.max(0, Math.min(1, y));
+
+            cursor.style.display = 'block';
+            cursor.style.left = `${finalX * 100}%`;
+            cursor.style.top = `${finalY * 100}%`;
+
+            socket.emit('live_pos', {
+                pin: selectedPin,
+                active: true,
+                x: finalX,
+                y: finalY,
+                rot: (x - 0.5) * 40
+            });
+        };
+
+        const handleRelease = () => {
+            cursor.style.display = 'none';
+            if (!selectedPin) return;
+            socket.emit('live_pos', { pin: selectedPin, active: false });
+        };
+
+        pad.addEventListener('mousemove', handleMove);
+        pad.addEventListener('touchstart', (e) => { e.preventDefault(); handleMove(e); }, {passive:false});
+        pad.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, {passive:false});
+        pad.addEventListener('touchend', handleRelease);
+        pad.addEventListener('mouseleave', handleRelease);
+
+        function sendSpell() {
+            const word = document.getElementById('spell-input').value.trim().toUpperCase();
+            if (!word || !selectedPin) return;
+            socket.emit('spell_word', { pin: selectedPin, text: word });
+            document.getElementById('spell-input').value = '';
+        }
+
+        function sendQuick(val) {
+            if (!selectedPin) return;
+            socket.emit('spell_word', { pin: selectedPin, text: val });
+        }
+
+        document.getElementById('spell-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendSpell();
+        });
+    </script>
+</body>
+</html>

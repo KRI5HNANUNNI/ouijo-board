@@ -20,22 +20,29 @@ const io = new Server(server, {
   cors: { origin: '*' } // Allow all for testing
 });
 
+// Memory Registry for Active Spirits
+const activeRooms = new Map(); // PIN -> { boardSocketId, lastSeen }
+
 io.on('connection', (socket) => {
     console.log(`[SYS] Client connected: ${socket.id}`);
 
     // Board creates a room
     socket.on('create_room', (pin) => {
         socket.join(`room_${pin}`);
+        activeRooms.set(pin, { 
+            boardSocketId: socket.id, 
+            lastSeen: Date.now() 
+        });
         console.log(`[SYS] Board established Room: ${pin}`);
+        broadcastRadar();
     });
 
     // Controller joins a room
     socket.on('join_room', (pin, callback) => {
-        const room = io.sockets.adapter.rooms.get(`room_${pin}`);
-        if (room) {
+        const roomExists = activeRooms.has(pin);
+        if (roomExists) {
             socket.join(`room_${pin}`);
             console.log(`[SYS] Controller joined Room: ${pin}`);
-            // Let the controller know it was successful
             callback({ success: true });
         } else {
             console.log(`[SYS] Controller failed to join Room: ${pin} (Not Found)`);
@@ -43,21 +50,46 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Spirit Radar - Admin data request
+    socket.on('request_radar', () => {
+        socket.emit('radar_update', Array.from(activeRooms.keys()));
+    });
+
     // Handle Live Relays
     socket.on('live_pos', (data) => {
-        // Broadcast specifically to the board in that room
-        socket.to(`room_${data.pin}`).emit('board_live_pos', data);
+        if (data.pin === 'GLOBAL') {
+            io.emit('board_live_pos', data); // Broadcast to EVERYONE
+        } else {
+            socket.to(`room_${data.pin}`).emit('board_live_pos', data);
+        }
     });
 
     // Handle Spell Relays
     socket.on('spell_word', (data) => {
-        socket.to(`room_${data.pin}`).emit('board_spell', data);
-        console.log(`[SYS] Room ${data.pin} spelling: ${data.text || data.reset}`);
+        if (data.pin === 'GLOBAL') {
+            io.emit('board_spell', data); // Mass Possession
+        } else {
+            socket.to(`room_${data.pin}`).emit('board_spell', data);
+        }
+        console.log(`[SYS] ${data.pin} spelling: ${data.text || data.reset}`);
     });
 
     socket.on('disconnect', () => {
+        // Find if this was a board and clean up
+        for (const [pin, info] of activeRooms.entries()) {
+            if (info.boardSocketId === socket.id) {
+                activeRooms.delete(pin);
+                console.log(`[SYS] Board in Room ${pin} vanished. Registry cleaned.`);
+                broadcastRadar();
+                break;
+            }
+        }
         console.log(`[SYS] Client disconnected: ${socket.id}`);
     });
+
+    function broadcastRadar() {
+        io.emit('radar_update', Array.from(activeRooms.keys()));
+    }
 });
 
 const PORT = process.env.PORT || 3000;

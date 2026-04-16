@@ -164,6 +164,21 @@
         // UI Socket Listeners
         socket.on('connect', () => {
             log('Connected to Custom Backend Server.');
+            // Self-Healing: Rejoin room if we were already in one
+            if (currentRoom) {
+                log(`Healing Session... Rejoining Room ${currentRoom}`);
+                socket.emit('join_room', currentRoom, (res) => {
+                    if (res.success) {
+                        updateStatus("SYNC HEALED", "green");
+                        setControlsEnabled(true);
+                    } else {
+                        updateStatus("LINK LOST", "red");
+                        log("Board has vanished.");
+                        currentRoom = null;
+                        setControlsEnabled(false);
+                    }
+                });
+            }
         });
         
         socket.on('disconnect', () => {
