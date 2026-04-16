@@ -113,9 +113,9 @@
         }
 
         #planchette.auto-move {
-            transition: left 2.0s cubic-bezier(0.45, 0.05, 0.55, 0.95), 
-                        top 2.0s cubic-bezier(0.45, 0.05, 0.55, 0.95), 
-                        transform 2.0s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+            transition: left 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95), 
+                        top 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95), 
+                        transform 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
         }
 
         #planchette.live-move {
@@ -687,24 +687,26 @@
                 return path.getPointAtLength(length * percentage);
             };
 
-            // A-N Mapping (14 characters, center 50%) -> roughly 15% to 85% of path
+            // A-N Mapping (14 characters)
             const amArr = "ABCDEFGHIJKLMN".split("");
             amArr.forEach((c, i) => {
-                targets[c] = {x: pt.x, y: pt.y - 42}; 
+                let pct = 0.05 + (0.90 / 13) * i; 
+                let pt = getPathPoint('curveAM', pct);
+                targets[c] = {x: pt.x, y: pt.y - 38}; 
             });
 
             const nzArr = "OPQRSTUVWXYZ".split("");
             nzArr.forEach((c, i) => {
-                let pct = 0.15 + (0.70 / 11) * i;
+                let pct = 0.05 + (0.90 / 11) * i;
                 let pt = getPathPoint('curveNZ', pct);
-                targets[c] = {x: pt.x, y: pt.y - 42};
+                targets[c] = {x: pt.x, y: pt.y - 38};
             });
             
             const numArr = "1234567890".split("");
             numArr.forEach((c, i) => {
-                let pct = 0.16 + (0.68 / 9) * i; 
+                let pct = 0.05 + (0.90 / 9) * i; 
                 let pt = getPathPoint('line10', pct);
-                targets[c] = {x: pt.x, y: pt.y - 42};
+                targets[c] = {x: pt.x, y: pt.y - 38};
             });
 
             // Animate Planchette to Target
@@ -742,8 +744,8 @@
                         for (let char of word) {
                             if (targets[char]) {
                                 moveToTarget(targets[char].x, targets[char].y);
-                                // Wait longer between characters for smooth movement
-                                await sleep(2500);
+                                // Wait for character spelling
+                                await sleep(1600);
                                 msgDisplay.textContent += char;
                             }
                         }
