@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Spirit Hub | Mystical Ouija Board</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Outfit:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark: #0a0a0c;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark);
+            color: #e0e0e0;
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: radial-gradient(circle, #1a1a2e 0%, #0a0a0c 100%);
+        }
+
+        #mist-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.4;
+        }
+
+        .portal-card {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 3rem;
+            color: var(--gold);
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            letter-spacing: 5px;
+        }
+
+        p {
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mystic-btn {
+            padding: 20px 40px;
+            font-size: 1.2rem;
+            font-family: 'Cinzel Decorative', cursive;
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            display: block;
+        }
+
+        .mystic-btn:hover {
+            background: var(--gold);
+            color: #000;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            transform: translateY(-5px);
+        }
+
+        .mystic-btn.secondary {
+            background: transparent;
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .mystic-btn.secondary:hover {
+            border-color: #fff;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .particle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 10s infinite linear;
+            opacity: 0.1;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(20px, -50px) scale(1.5); }
+            100% { transform: translate(-20px, -100px) scale(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="mist-container"></div>
+    
+    <div class="portal-card">
+        <h1>OUIJA</h1>
+        <p>Advanced Mystical Communication Suite</p>
+        
+        <div class="btn-group">
+            <a href="ouija_board.html" class="mystic-btn">OPEN THE BOARD</a>
+            <a href="ghost.html" class="mystic-btn secondary">GHOST CONTROLLER</a>
+        </div>
+    </div>
+
+    <script>
+        // Create mystic floating particles
+        const mist = document.getElementById('mist-container');
+        for (let i = 0; i < 50; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 3 + 1;
+            p.style.width = `${size}px`;
+            p.style.height = `${size}px`;
+            p.style.left = `${Math.random() * 100}%`;
+            p.style.top = `${Math.random() * 100 + 100}%`;
+            p.style.animationDelay = `${Math.random() * 10}s`;
+            p.style.animationDuration = `${Math.random() * 10 + 10}s`;
+            mist.appendChild(p);
+        }
+    </script>
+</body>
+</html>

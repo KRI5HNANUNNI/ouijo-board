@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>System Diagnostic Tool v6.0</title>
+    <style>
+        :root {
+            --gold: #d4af37;
+        }
+        body {
+            background-color: #f0f0f0;
+            color: #333;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            font-size: 14px;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #login-section {
+            max-width: 320px;
+            margin: 80px auto;
+            background: white;
+            padding: 25px;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        #admin-controls { display: none; height: 100vh; flex-direction: column; }
+        
+        .header { border-bottom: 2px solid #ddd; padding-bottom: 8px; margin-bottom: 12px; }
+        .status { font-weight: bold; transition: color 0.3s; }
+        
+        .log-container {
+            background: #111;
+            color: #0f0;
+            border: 1px solid #333;
+            padding: 8px;
+            height: 120px;
+            overflow-y: scroll;
+            margin-bottom: 12px;
+            font-family: 'Consolas', monospace;
+            font-size: 11px;
+            border-radius: 4px;
+        }
+        
+        #live-pad {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1000 / 650;
+            background: #111;
+            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('wood_bg.png');
+            background-size: cover;
+            border: 2px solid var(--gold);
+            margin-bottom: 12px;
+            border-radius: 6px;
+            touch-action: none;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px #000;
+        }
+
+        #live-pad svg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 92%;
+            height: 92%;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        #live-pad text, #live-pad path, #live-pad circle {
+            fill: #fff !important;
+            stroke: #fff !important;
+        }
+
+        #cursor-preview {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--gold);
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 0 15px var(--gold);
+        }
+
+        .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+        }
+        button {
+            padding: 10px 15px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .btn-group { display: flex; gap: 8px; }
+        .btn-group button { flex: 1; }
+        
+        .debug-info {
+            font-size: 10px;
+            color: #666;
+            margin-top: 10px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-section">
+        <h3>STATION AUTH v6</h3>
+        <p>Enter 4-Digit Board Code:</p>
+        <input type="text" id="passcode" placeholder="0000" maxlength="4" inputmode="numeric">
+        <button onclick="checkAuth()" style="width:100%; margin-top:10px;">Establish Tunnel</button>
+    </div>
+
+    <div id="admin-controls">
+        <div class="header">
+            <strong>Diagnostic Tool v6.0 (Relay Enabled)</strong><br>
+            Link Status: <span id="conn-status" style="color:red;">Searching...</span>
+        </div>
+
+        <div class="log-container" id="log">
+            [SYS] Initializing...
+        </div>
+
+        <div id="live-pad">
+            <svg viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <path id="curveAM" d="M 120 300 A 450 300 0 0 1 880 300" fill="transparent" />
+                    <path id="curveNZ" d="M 220 400 A 350 200 0 0 1 780 400" fill="transparent" />
+                    <path id="line10" d="M 150 480 L 850 480" fill="transparent" />
+                    <path id="curveGoodbye" d="M 250 580 A 250 50 0 0 0 750 580" fill="transparent"/>
+                </defs>
+                <g opacity="0.8">
+                    <text x="500" y="90" text-anchor="middle" font-size="60" font-family="serif" font-weight="bold">OUIJA</text>
+                    <text x="220" y="160" text-anchor="middle" font-size="40" font-family="serif" font-weight="bold">YES</text>
+                    <text x="780" y="160" text-anchor="middle" font-size="40" font-family="serif" font-weight="bold">NO</text>
+                    <text font-size="45" text-anchor="middle" font-family="serif" font-weight="bold">
+                        <textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath>
+                    </text>
+                    <text font-size="45" text-anchor="middle" font-family="serif" font-weight="bold">
+                        <textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath>
+                    </text>
+                    <text font-size="45" text-anchor="middle" font-family="serif" font-weight="bold">
+                        <textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath>
+                    </text>
+                    <text font-size="40" text-anchor="middle" font-family="serif" font-weight="bold">
+                        <textPath href="#curveGoodbye" startOffset="50%">GOODBYE</textPath>
+                    </text>
+                </g>
+            </svg>
+            <div id="cursor-preview"></div>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="target-word" placeholder="Sequence..." disabled>
+            <button onclick="sendCommand()" id="send-btn" disabled>Spell</button>
+        </div>
+
+        <div class="btn-group">
+            <button onclick="sendQuick('YES')" class="ctrl-btn" disabled>YES</button>
+            <button onclick="sendQuick('NO')" class="ctrl-btn" disabled>NO</button>
+            <button onclick="sendQuick(null)" class="ctrl-btn" disabled style="background:#888;">RESET</button>
+        </div>
+        
+        <div class="debug-info" id="debug-txt">ICE: Checking...</div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        // Connect to the server
+        const socket = io();
+        let currentRoom = null;
+
+        const log = (msg) => {
+            const l = document.getElementById('log');
+            l.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+            l.scrollTop = l.scrollHeight;
+        };
+
+        const updateStatus = (text, color) => {
+            const s = document.getElementById('conn-status');
+            s.innerText = text;
+            s.style.color = color;
+        };
+
+        const setControlsEnabled = (enabled) => {
+            document.querySelectorAll('button, input').forEach(el => {
+                if (el.id !== 'passcode') el.disabled = !enabled;
+            });
+            document.querySelectorAll('.ctrl-btn').forEach(btn => btn.disabled = !enabled);
+        };
+
+        // UI Socket Listeners
+        socket.on('connect', () => {
+            log('Connected to Custom Backend Server.');
+            // Self-Healing: Rejoin room if we were already in one
+            if (currentRoom) {
+                log(`Healing Session... Rejoining Room ${currentRoom}`);
+                socket.emit('join_room', currentRoom, (res) => {
+                    if (res.success) {
+                        updateStatus("SYNC HEALED", "green");
+                        setControlsEnabled(true);
+                    } else {
+                        updateStatus("LINK LOST", "red");
+                        log("Board has vanished.");
+                        currentRoom = null;
+                        setControlsEnabled(false);
+                    }
+                });
+            }
+        });
+        
+        socket.on('disconnect', () => {
+            updateStatus("OFFLINE", "red");
+            log('Disconnected from Server.');
+            setControlsEnabled(false);
+            currentRoom = null;
+        });
+
+        window.checkAuth = () => {
+            const code = document.getElementById('passcode').value.trim();
+            if(code.length === 4) {
+                log(`Attempting to join Room: ${code}`);
+                updateStatus("NEGOTIATING...", "orange");
+                
+                socket.emit('join_room', code, (response) => {
+                    if (response.success) {
+                        currentRoom = code;
+                        document.getElementById('login-section').style.display = 'none';
+                        document.getElementById('admin-controls').style.display = 'flex';
+                        updateStatus("CONNECTED", "green");
+                        log("Link established via Custom Server.");
+                        setControlsEnabled(true);
+                    } else {
+                        updateStatus("INVALID PIN", "red");
+                        log(`ERROR: ${response.error}. Is the board open?`);
+                        alert("Room not found. Check the code on the board.");
+                    }
+                });
+            } else { alert("Enter a 4-digit code."); }
+        };
+
+        // --- Live Control Logic (Socket.io Stream) ---
+        let pad, svgModel, cursor;
+        let isMoving = false;
+
+        const initControls = () => {
+            pad = document.getElementById('live-pad');
+            svgModel = pad.querySelector('svg');
+            cursor = document.getElementById('cursor-preview');
+        };
+
+        const handleMove = (e) => {
+            if (!currentRoom || !pad) return;
+            
+            const pRect = pad.getBoundingClientRect();
+            const touch = (e.touches && e.touches.length > 0) ? e.touches[0] : e;
+            
+            // Percentage relative to the Pad container (div is always reliable)
+            const rawX = (touch.clientX - pRect.left) / (pRect.width || 1);
+            const rawY = (touch.clientY - pRect.top) / (pRect.height || 1);
+            
+            if (isNaN(rawX) || isNaN(rawY)) return;
+
+            // The SVG inside the pad renders at 92% size centered (4% inset on each side).
+            // Remap so the sent fraction correctly maps to the board's full SVG viewBox.
+            const x = (rawX - 0.04) / 0.92;
+            const y = (rawY - 0.04) / 0.92;
+
+            const finalX = Math.max(0, Math.min(1, x));
+            const finalY = Math.max(0, Math.min(1, y));
+
+            // Visual feedback
+            const cursorX = finalX * 100;
+            const cursorY = finalY * 100;
+
+            if (cursor) {
+                cursor.style.display = 'block';
+                cursor.style.left = `${cursorX}%`;
+                cursor.style.top = `${cursorY}%`;
+            }
+            
+            socket.emit('live_pos', {
+                pin: currentRoom,
+                active: true,
+                x: finalX,
+                y: finalY,
+                rot: (x - 0.5) * 40
+            });
+        };
+
+        const handleRelease = () => {
+            isMoving = false;
+            if (cursor) cursor.style.display = 'none';
+            if (!currentRoom) return;
+            socket.emit('live_pos', { pin: currentRoom, active: false });
+        };
+
+        // Initialize and bind
+        document.addEventListener('DOMContentLoaded', () => {
+            initControls();
+            if (pad) {
+                // Mouse Events - Click and Drag
+                pad.addEventListener('mousedown', (e) => {
+                    isMoving = true;
+                    handleMove(e);
+                });
+                
+                window.addEventListener('mousemove', (e) => {
+                    if (isMoving) handleMove(e);
+                });
+                
+                window.addEventListener('mouseup', handleRelease);
+                
+                // Touch Events
+                pad.addEventListener('touchstart', (e) => { 
+                    if (e.cancelable) e.preventDefault(); 
+                    handleMove(e); 
+                }, { passive: false });
+                
+                pad.addEventListener('touchmove', (e) => { 
+                    if (e.cancelable) e.preventDefault(); 
+                    handleMove(e); 
+                }, { passive: false });
+                
+                pad.addEventListener('touchend', handleRelease);
+            }
+        });
+
+        // --- Classical Control (Socket Stream) ---
+        window.sendCommand = () => {
+            const word = document.getElementById('target-word').value.trim().toUpperCase();
+            if(!word || !currentRoom) return;
+            
+            socket.emit('spell_word', { pin: currentRoom, text: word });
+            log(`Spell: ${word}`);
+            document.getElementById('target-word').value = "";
+        };
+
+        window.sendQuick = (val) => {
+            if (!currentRoom) return;
+            if (val === null) {
+                socket.emit('spell_word', { pin: currentRoom, reset: true });
+                log("Reset Signal sent.");
+            } else {
+                socket.emit('spell_word', { pin: currentRoom, text: val });
+                log(`Quick: ${val}`);
+            }
+        };
+
+        document.getElementById('target-word').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') window.sendCommand();
+        });
+    </script>
+</body>
+</html>
