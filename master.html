@@ -219,7 +219,7 @@
 
         .global-badge {
             display: inline-block;
-            padding: 40x 10px;
+            padding: 4px 10px;
             background: #ff0000;
             color: white;
             font-size: 0.6rem;
@@ -307,10 +307,10 @@
                     <div id="live-pad">
                         <svg viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg">
                             <defs>
-                                <path id="curveAM" d="M 120 300 A 450 300 0 0 1 880 300" fill="transparent" />
-                                <path id="curveNZ" d="M 220 400 A 350 200 0 0 1 780 400" fill="transparent" />
-                                <path id="line10" d="M 150 480 L 850 480" fill="transparent" />
-                                <path id="curveGoodbye" d="M 250 580 A 250 50 0 0 0 750 580" fill="transparent"/>
+                                <path id="curveAM"   d="M 30 350 A 470 140 0 0 1 970 350" fill="transparent"/>
+                                <path id="curveNZ"   d="M 80 480 A 420 100 0 0 1 920 480" fill="transparent"/>
+                                <path id="line10"    d="M 120 580 L 880 580"               fill="transparent"/>
+                                <path id="curveGoodbye" d="M 250 635 A 250 15 0 0 0 750 635" fill="transparent"/>
                             </defs>
                             <g opacity="0.8">
                                 <text x="500" y="90" text-anchor="middle" font-size="60" font-family="serif" font-weight="bold">OUIJA</text>
@@ -622,11 +622,16 @@
             const touch = (e.touches && e.touches.length > 0) ? e.touches[0] : e;
             
             // Percentage relative to the Pad container (div is always reliable)
-            const x = (touch.clientX - pRect.left) / (pRect.width || 1);
-            const y = (touch.clientY - pRect.top) / (pRect.height || 1);
+            const rawX = (touch.clientX - pRect.left) / (pRect.width || 1);
+            const rawY = (touch.clientY - pRect.top) / (pRect.height || 1);
             
             // Sanitize
-            if (isNaN(x) || isNaN(y)) return;
+            if (isNaN(rawX) || isNaN(rawY)) return;
+
+            // The SVG inside the pad renders at 90% size centered (5% inset on each side).
+            // Remap so the sent fraction correctly maps to the board's full SVG viewBox.
+            const x = (rawX - 0.05) / 0.90;
+            const y = (rawY - 0.05) / 0.90;
 
             const finalX = Math.max(0, Math.min(1, x));
             const finalY = Math.max(0, Math.min(1, y));

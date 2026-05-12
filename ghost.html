@@ -272,10 +272,15 @@
             const touch = (e.touches && e.touches.length > 0) ? e.touches[0] : e;
             
             // Percentage relative to the Pad container (div is always reliable)
-            const x = (touch.clientX - pRect.left) / (pRect.width || 1);
-            const y = (touch.clientY - pRect.top) / (pRect.height || 1);
+            const rawX = (touch.clientX - pRect.left) / (pRect.width || 1);
+            const rawY = (touch.clientY - pRect.top) / (pRect.height || 1);
             
-            if (isNaN(x) || isNaN(y)) return;
+            if (isNaN(rawX) || isNaN(rawY)) return;
+
+            // The SVG inside the pad renders at 92% size centered (4% inset on each side).
+            // Remap so the sent fraction correctly maps to the board's full SVG viewBox.
+            const x = (rawX - 0.04) / 0.92;
+            const y = (rawY - 0.04) / 0.92;
 
             const finalX = Math.max(0, Math.min(1, x));
             const finalY = Math.max(0, Math.min(1, y));

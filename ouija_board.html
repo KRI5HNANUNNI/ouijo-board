@@ -6,16 +6,15 @@
     <title>Advanced Mystical Ouija Board</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;900&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+            margin: 0; padding: 0;
+            width: 100%; 
+            height: 100dvh; /* Dynamic viewport height for mobile browsers */
             background-color: #030200;
             overflow: hidden;
-            font-family: 'Cinzel Decorative', serif;
+            font-family: 'Cinzel', serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -23,6 +22,7 @@
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
+            position: relative;
         }
 
         #board-container {
@@ -33,13 +33,12 @@
             background-image: url('wood_bg.png');
             background-size: cover;
             background-position: center;
-            box-shadow: inset 0 0 10vw rgba(0,0,0,0.85), 0 0 5vw rgba(0,0,0,0.8);
+            box-shadow: inset 0 0 10vw rgba(0,0,0,0.95), 0 0 5vw rgba(0,0,0,0.8);
             border: 0.3vmin solid #1a0f05;
             border-radius: 2vmin;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: all 0.3s ease;
         }
 
         #board-container::after {
@@ -54,110 +53,95 @@
         #ouija-board {
             position: absolute;
             top: 0; left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             z-index: 1;
         }
 
         .title {
-            font-family: 'Cinzel Decorative', serif;
-            font-size: clamp(18px, 8vmin, 72px);
-            fill: #2a1a06;
+            font-size: 10vmin;
+            fill: #1a0f05;
             font-weight: 900;
             letter-spacing: 3vmin;
         }
 
+        /* Word elements (YES, NO, GOODBYE) */
         .word {
-            font-family: 'Cinzel Decorative', serif;
-            font-size: clamp(16px, 6vmin, 56px);
-            fill: #2a1a06;
+            font-size: 7vmin;
+            fill: #1a0f05;
             font-weight: 900;
             cursor: pointer;
-            transition: fill 0.3s, filter 0.3s;
+            transition: fill 0.4s, filter 0.4s;
+        }
+        .word.lit, .word:hover {
+            fill: #ffb84d;
+            filter: drop-shadow(0 0 2vmin rgba(255,184,77,0.95))
+                    drop-shadow(0 0 4vmin rgba(255,120,0,0.7));
         }
 
-        .word:hover {
-            fill: #c8861a;
-            filter: drop-shadow(0 0 1vmin rgba(200,134,26,0.8));
-        }
-
+        /* Alphabet & number rows */
         .alphabet, .numbers {
-            font-family: 'Cinzel Decorative', serif;
-            font-size: clamp(12px, 5vmin, 48px);
-            fill: #2e1a07;
+            font-size: 6vmin;
+            fill: #2a1808;
             font-weight: 900;
-            stroke: #1a0f04;
+            stroke: #1a0f05;
             stroke-width: 0.15vmin;
-            letter-spacing: 0.5vmin;
-        }
-
-        /* Glow animation for spirit-glow */
-        #spirit-glow {
-            transition: cx 2.5s cubic-bezier(0.4,0,0.2,1),
-                        cy 2.5s cubic-bezier(0.4,0,0.2,1),
-                        opacity 0.6s ease;
-            pointer-events: none;
-        }
-
-        #spirit-glow.live-glow {
-            transition: cx 0.3s ease-out, cy 0.3s ease-out, opacity 0.3s ease;
+            letter-spacing: 0.8vmin;
+            transition: filter 0.4s;
         }
 
         .icon, .icon path, .icon circle {
-            fill: #2a1a06;
-            stroke: #1a0f04;
-            filter: drop-shadow(-0.1vmin -0.1vmin 0px rgba(0,0,0,0.9)) drop-shadow(0.1vmin 0.1vmin 0px rgba(255,255,255,0.05));
+            fill: #1a0f05;
+            stroke: #1a0f05;
         }
 
         #planchette {
-            position: absolute;
-            width: 15%;
-            height: 28%;
-            transform-origin: 50% 72%; /* The eye/hole center is at 72% height */
-            z-index: 100;
             pointer-events: auto;
             cursor: grab;
-            filter: drop-shadow(0 2vmin 4vmin rgba(0,0,0,0.9)) drop-shadow(0 0 1vmin rgba(255,200,80,0.08));
-            /* Use translate(-50%, -72%) so the hole (at 72% height) lands on target */
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -72%);
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.8));
+            transition: transform 0.4s ease-out;
         }
-
         #planchette.auto-move {
-            transition: left 2.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                        top 2.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                        filter 1s ease,
-                        transform 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Smooth mystical crawl */
+            transition: transform 7.0s cubic-bezier(0.445, 0.05, 0.55, 0.95);
         }
-
         #planchette.live-move {
-            transition: left 0.3s ease-out, top 0.3s ease-out, transform 0.3s ease-out;
+            transition: transform 0.3s ease-out;
         }
 
-        #planchette:active {
-            cursor: grabbing;
-            filter: drop-shadow(0 3vmin 5vmin rgba(0,0,0,0.95)) drop-shadow(0 0 2vmin rgba(255,200,80,0.2));
+        #planchette.auto-move .hole-ring {
+            filter: drop-shadow(0 0 10px rgba(255,220,80,1))
+                    drop-shadow(0 0 20px rgba(255,140,0,0.8));
         }
 
+        /* Atmospheric mist */
         #spirit-mist {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none;
             z-index: 5;
-            background: 
+            background:
                 radial-gradient(circle at 30% 30%, rgba(255,255,255,0.03) 0%, transparent 50%),
                 radial-gradient(circle at 70% 70%, rgba(255,255,255,0.03) 0%, transparent 50%);
             filter: blur(40px);
             animation: mist-move 20s infinite alternate ease-in-out;
             opacity: 0.6;
         }
-
         @keyframes mist-move {
-            0% { transform: translate(-5%, -5%) scale(1); }
-            100% { transform: translate(5%, 5%) scale(1.1); }
+            0%   { transform: translate(-5%,-5%) scale(1); }
+            100% { transform: translate( 5%, 5%) scale(1.1); }
         }
 
+        /* Particle canvas */
+        #particle-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 6;
+            opacity: 0.45;
+        }
+
+        /* Controls */
         #controls {
             margin-top: 3vh;
             display: flex;
@@ -172,9 +156,8 @@
             background: linear-gradient(to bottom, #2a1508, #1a0f05);
             border: 0.2vmin solid #5a3f25;
             color: #cca470;
-            font-family: 'Cinzel Decorative', serif;
-            font-size: 1.8vmin;
-            min-font-size: 12px;
+            font-family: 'Cinzel', serif;
+            font-size: max(1.8vmin, 11px);
             font-weight: bold;
             padding: 1.2vmin 3vmin;
             border-radius: 0.8vmin;
@@ -182,14 +165,21 @@
             box-shadow: 0 0.5vmin 1.5vmin rgba(0,0,0,0.8);
             transition: all 0.3s;
             white-space: nowrap;
+            letter-spacing: 1px;
+        }
+        button:hover {
+            background: linear-gradient(to bottom, #3a2010, #2a1508);
+            border-color: #cca470;
+            color: #ffcc66;
+            box-shadow: 0 0 12px rgba(200,150,50,0.3);
         }
 
         #question-input {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0,0,0,0.6);
             border: 0.2vmin solid #5a3f25;
             color: #ffd8a0;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 2vmin;
+            font-family: 'Cinzel', serif;
+            font-size: max(1.8vmin, 12px);
             padding: 1.2vmin 2vmin;
             border-radius: 0.8vmin;
             outline: none;
@@ -197,72 +187,60 @@
             min-width: 150px;
             box-shadow: inset 0 0.2vmin 0.5vmin rgba(0,0,0,0.8);
         }
+        #question-input::placeholder { color: rgba(204,164,112,0.5); }
 
+        /* Spelled message display */
         #message-display {
             position: fixed;
             bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
             color: #ffcc66;
-            font-size: 4vmin;
-            letter-spacing: 0.8vmin;
-            text-shadow: 0 0 10px rgba(255, 184, 77, 0.6), 0 0 20px rgba(0,0,0,1);
+            font-family: 'IM Fell English SC', 'Cinzel', serif;
+            font-size: max(4vmin, 16px);
+            letter-spacing: max(0.8vmin, 3px);
+            text-shadow:
+                0 0 12px rgba(255,184,77,0.9),
+                0 0 30px rgba(255,140,0,0.5),
+                0 0 20px rgba(0,0,0,1);
             pointer-events: none;
             text-align: center;
             z-index: 50;
             width: 90%;
         }
 
+        /* ── Mobile fixes ───────────────────────────────── */
         @media (max-width: 600px) {
-            #board-container {
-                width: 100vw;
-                border: none;
-                border-radius: 0;
+            #board-container { 
+                width: 98vw; 
+                height: 50vh; /* More height on mobile */
+                aspect-ratio: auto; 
+                border: none; 
+                border-radius: 0; 
             }
-            #controls {
-                gap: 8px;
-            }
-            #question-input {
-                width: 75%;
-                font-size: 12px;
-            }
-            button {
-                font-size: 11px;
-                padding: 8px 14px;
-            }
-            .title {
-                font-size: clamp(14px, 7vmin, 40px);
-            }
-            .word {
-                font-size: clamp(13px, 5.5vmin, 36px);
-            }
-            .alphabet, .numbers {
-                font-size: clamp(10px, 4.2vmin, 32px);
-            }
-            #message-display {
-                font-size: clamp(14px, 4vmin, 28px);
-                bottom: 20px;
-            }
+            .alphabet { font-size: 8.5vmin !important; }
+            .numbers { font-size: 9vmin !important; }
+            .word { font-size: 10vmin !important; }
+            .title { font-size: 14vmin !important; }
+            
+            #controls { gap: 8px; padding: 10px 8px; margin-top: 2vh; }
+            #question-input { width: 85%; font-size: 16px; padding: 12px; }
+            button { font-size: 14px; padding: 12px 20px; width: 45%; }
+            #message-display { font-size: 18px; letter-spacing: 4px; bottom: 10%; }
         }
-
+        @media (max-width: 400px) {
+            button { font-size: 11px; padding: 8px 12px; }
+            #controls { gap: 6px; }
+        }
         @media (orientation: portrait) {
-            #board-container {
-                width: 100vw;
-            }
-            .title {
-                font-size: clamp(14px, 6vmin, 40px);
-                letter-spacing: 2vmin;
-            }
-            .alphabet, .numbers {
-                font-size: clamp(9px, 4vmin, 30px);
-            }
+            #board-container { width: 98vw; }
         }
 
-        /* Overlay to capture user interaction for microphone */
+        /* ── Ritual overlay ─────────────────────────────── */
         #ritual-overlay {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: #030200;
+            inset: 0;
+            background: radial-gradient(circle at 50% 40%, #0d0800 0%, #030200 100%);
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -270,53 +248,62 @@
             align-items: center;
             text-align: center;
             color: #d4af37;
-            font-family: 'Cinzel Decorative', serif;
         }
-        
+        #ritual-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(212,175,55,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(212,175,55,0.04) 0%, transparent 50%);
+            animation: mist-move 15s infinite alternate;
+        }
         #ritual-overlay h1 {
-            font-size: 4vmin;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: max(4vmin, 22px);
             margin-bottom: 20px;
             letter-spacing: 5px;
-            text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            text-shadow: 0 0 30px rgba(212,175,55,0.5), 0 0 60px rgba(212,175,55,0.2);
+            position: relative;
         }
-
         #ritual-overlay p {
-            font-family: 'Courier New', monospace;
-            font-size: 2vmin;
+            font-family: 'Cinzel', serif;
+            font-size: max(1.8vmin, 13px);
             color: #aaa;
             margin-bottom: 40px;
-            max-width: 600px;
-            line-height: 1.5;
+            max-width: 500px;
+            line-height: 1.7;
+            position: relative;
+            padding: 0 20px;
         }
-
         .begin-btn {
             background: transparent;
             border: 2px solid #d4af37;
             color: #d4af37;
-            padding: 15px 40px;
-            font-size: 24px;
+            padding: max(15px,2vmin) max(40px,5vmin);
+            font-size: max(20px,2.5vmin);
             cursor: pointer;
             border-radius: 50px;
-            transition: all 0.3s;
+            transition: all 0.4s;
             font-family: 'Cinzel Decorative', serif;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 20px rgba(212,175,55,0.15), inset 0 0 20px rgba(212,175,55,0.05);
+            position: relative;
+            letter-spacing: 2px;
         }
         .begin-btn:hover {
             background: #d4af37;
             color: #000;
-            box-shadow: 0 0 30px #d4af37;
+            box-shadow: 0 0 40px #d4af37, 0 0 80px rgba(212,175,55,0.3);
+            transform: scale(1.05);
         }
 
-
-        /* Rules Modal Styling */
+        /* ── Info / Rules button ─────────────────────────── */
         .info-btn {
             position: fixed;
-            bottom: 25px;
-            right: 25px;
-            width: 45px;
-            height: 45px;
+            bottom: 25px; right: 25px;
+            width: 45px; height: 45px;
             border-radius: 50%;
-            background: rgba(26, 15, 5, 0.8);
+            background: rgba(26,15,5,0.8);
             border: 2px solid #5a3f25;
             color: #cca470;
             font-family: 'Cinzel Decorative', serif;
@@ -330,36 +317,28 @@
             transition: all 0.3s;
             box-shadow: 0 0.5vmin 1.5vmin rgba(0,0,0,0.9);
         }
-
         .info-btn:hover {
             background: #2a1508;
             color: #e6b800;
             border-color: #cca470;
-            box-shadow: 0 0 15px rgba(230, 184, 0, 0.3);
+            box-shadow: 0 0 15px rgba(230,184,0,0.3);
             transform: scale(1.1);
         }
 
         .rules-modal {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
+            inset: 0;
+            background: rgba(0,0,0,0.85);
             backdrop-filter: blur(5px);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 10001;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s;
         }
-
-        .rules-modal.show {
-            display: flex;
-            opacity: 1;
-        }
-        
-        .rules-modal.show .rules-content {
-            transform: scale(1);
-        }
+        .rules-modal.show { display: flex; opacity: 1; }
+        .rules-modal.show .rules-content { transform: scale(1); }
 
         .rules-content {
             background: linear-gradient(to bottom, #1a0f05, #080402);
@@ -372,37 +351,32 @@
             box-shadow: 0 0 40px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.8);
             position: relative;
             transform: scale(0.9);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s;
             max-height: 80vh;
             overflow-y: auto;
-            font-family: 'Cinzel Decorative', serif;
+            font-family: 'Cinzel', serif;
         }
-
         .rules-content h2 {
+            font-family: 'Cinzel Decorative', serif;
             color: #d4af37;
             text-align: center;
-            font-size: 2.2em;
+            font-size: max(2em,20px);
             margin-top: 0;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            border-bottom: 1px solid rgba(212,175,55,0.3);
             padding-bottom: 15px;
             letter-spacing: 2px;
         }
-
         .rules-content ul {
             list-style-type: none;
             padding: 0;
-            font-family: 'Courier New', monospace;
-            font-size: 1.1em;
+            font-size: max(0.95em,13px);
             line-height: 1.7;
-            font-weight: bold;
         }
-
         .rules-content li {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             padding-left: 25px;
             position: relative;
         }
-
         .rules-content li::before {
             content: "✦";
             position: absolute;
@@ -411,49 +385,41 @@
             font-size: 1.2em;
             top: -2px;
         }
-
         .close-rules {
             position: absolute;
-            top: 15px;
-            right: 20px;
+            top: 15px; right: 20px;
             font-size: 30px;
             color: #888;
             cursor: pointer;
             transition: color 0.3s;
             font-family: sans-serif;
         }
-
-        .close-rules:hover {
-            color: #fff;
-        }
-        
-        .rules-content::-scrollbar { width: 8px; }
+        .close-rules:hover { color: #fff; }
         .rules-content::-webkit-scrollbar { width: 8px; }
         .rules-content::-webkit-scrollbar-track { background: #1a0f05; }
         .rules-content::-webkit-scrollbar-thumb { background: #5a3f25; border-radius: 4px; }
 
-        /* Security Warning */
+        /* Security warning */
         #security-warning {
             position: fixed;
             top: 0; left: 0; right: 0;
             background: #8b0000;
-            color: white;
+            color: #fff;
             padding: 10px;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: max(0.8rem,11px);
             z-index: 100005;
             display: none;
-            border-bottom: 2px solid white;
+            border-bottom: 2px solid #fff;
             font-family: monospace;
         }
 
-        /* Spiritual Status Log */
+        /* Spirit log */
         #spirit-status {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 20px; right: 20px;
             width: 250px;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0,0,0,0.85);
             border: 1px solid #5a3f25;
             color: #cca470;
             font-family: 'Courier New', monospace;
@@ -465,120 +431,183 @@
             display: none;
             max-height: 150px;
             overflow-y: hidden;
-            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        /* Room code */
+        #room-code-wrap {
+            color: rgba(255,255,255,0.3);
+            font-family: 'Cinzel', serif;
+            font-size: max(1.2vmin,10px);
+            margin-top: 10px;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        /* ── Fullscreen Toggle Button ── */
+        #fs-toggle-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 10000;
+            background: rgba(26,15,5,0.6);
+            border: 1px solid #5a3f25;
+            color: #cca470;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(5px);
+        }
+        #fs-toggle-btn:hover {
+            background: rgba(42,21,8,0.9);
+            border-color: #cca470;
+            color: #ffcc66;
+            box-shadow: 0 0 15px rgba(204,164,112,0.2);
+        }
+        #fs-toggle-btn i { font-size: 14px; }
+
+        /* Fullscreen state overrides */
+        :fullscreen #board-container,
+        :-webkit-full-screen #board-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            border: none;
+            border-radius: 0;
+        }
+        :fullscreen #controls,
+        :-webkit-full-screen #controls {
+            position: fixed;
+            bottom: 80px;
+        }
+        
+        @media (max-width: 480px) {
+            #fs-toggle-btn span { display: none; }
+            #fs-toggle-btn { padding: 10px; border-radius: 50%; }
         }
     </style>
+    <!-- Add FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
+    <button id="fs-toggle-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">
+        <i class="fa-solid fa-expand" id="fs-icon"></i>
+        <span>Fullscreen</span>
+    </button>
+
     <div id="security-warning">
         ⚠️ INSECURE CONTEXT: Microphone access will be blocked. Use http://localhost or https://
     </div>
     <div id="spirit-status"></div>
+
     <div id="board-container">
         <div id="spirit-mist"></div>
-        
-        <!-- Main Board SVG -->
+        <canvas id="particle-canvas"></canvas>
+
+        <!-- Main SVG Board -->
         <svg id="ouija-board" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg">
             <defs>
-                <path id="curveAM" d="M 30 350 A 470 140 0 0 1 970 350" fill="transparent" />
-                <path id="curveNZ" d="M 80 480 A 420 100 0 0 1 920 480" fill="transparent" />
-                <path id="line10" d="M 120 580 L 880 580" fill="transparent" />
+                <path id="curveAM"   d="M 30 350 A 470 140 0 0 1 970 350" fill="transparent"/>
+                <path id="curveNZ"   d="M 80 480 A 420 100 0 0 1 920 480" fill="transparent"/>
+                <path id="line10"    d="M 120 580 L 880 580"               fill="transparent"/>
                 <path id="curveGoodbye" d="M 250 635 A 250 15 0 0 0 750 635" fill="transparent"/>
-                <!-- Spirit spotlight gradient -->
-                <radialGradient id="spirit-light" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                    <stop offset="0%" stop-color="#ffe8a0" stop-opacity="0.55"/>
-                    <stop offset="45%" stop-color="#ffcc66" stop-opacity="0.25"/>
-                    <stop offset="100%" stop-color="#ffcc66" stop-opacity="0"/>
-                </radialGradient>
-                <!-- Vignette border gradient -->
-                <radialGradient id="board-vignette" cx="50%" cy="50%" r="70%">
-                    <stop offset="0%" stop-color="transparent"/>
-                    <stop offset="100%" stop-color="rgba(0,0,0,0.5)"/>
-                </radialGradient>
-                <filter id="letter-glow">
-                    <feGaussianBlur stdDeviation="3" result="blur"/>
-                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                <filter id="letter-glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="4" result="blur"/>
+                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                 </filter>
             </defs>
-            
-            <!-- Board vignette overlay -->
-            <rect x="0" y="0" width="1000" height="650" fill="url(#board-vignette)" pointer-events="none" opacity="0.6"/>
 
             <g class="board-graphics">
-                <!-- Sun and Moon Settings -->
-                <g class="icon sun" transform="translate(120, 115)">
-                    <circle cx="0" cy="0" r="15" stroke="none" />
-                    <path d="M 0 -22 L 0 -35 M 0 22 L 0 35 M -22 0 L -35 0 M 22 0 L 35 0 M -15 -15 L -25 -25 M 15 15 L 25 25 M -15 15 L -25 25 M 15 -15 L 25 -25" stroke-width="5" stroke-linecap="round" fill="none"/>
+                <!-- Sun -->
+                <g class="icon sun" transform="translate(120,115)">
+                    <circle cx="0" cy="0" r="15" stroke="none"/>
+                    <path d="M0-22L0-35 M0 22L0 35 M-22 0L-35 0 M22 0L35 0
+                             M-15-15L-25-25 M15 15L25 25 M-15 15L-25 25 M15-15L25-25"
+                          stroke-width="5" stroke-linecap="round" fill="none"/>
                 </g>
-                <g class="icon moon" transform="translate(880, 115) scale(0.8)">
-                    <path d="M 0 -30 A 30 30 0 1 0 0 30 A 25 25 0 0 1 -10 15 A 5 5 0 0 0 -10 5 A 25 25 0 0 1 0 -30" stroke="none" />
+                <!-- Moon -->
+                <g class="icon moon" transform="translate(880,115) scale(0.8)">
+                    <path d="M0-30A30 30 0 1 0 0 30A25 25 0 0 1-10 15A5 5 0 0 0-10 5A25 25 0 0 1 0-30" stroke="none"/>
                 </g>
 
-                <!-- TITLE -->
+                <!-- Title -->
                 <text x="500" y="90" class="title" text-anchor="middle">O U I J A</text>
-                
+
                 <!-- YES / NO -->
-                <text x="220" y="160" class="word yes" text-anchor="middle">Y E S</text>
-                <text x="780" y="160" class="word no" text-anchor="middle">N O</text>
-                
-                <!-- Alphabet -->
-                <text id="txt-am" class="alphabet" text-anchor="middle" letter-spacing="6"><textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath></text>
-                <text id="txt-nz" class="alphabet" text-anchor="middle" letter-spacing="6"><textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath></text>
-                
+                <text id="word-YES" x="220" y="160" class="word" text-anchor="middle">Y E S</text>
+                <text id="word-NO"  x="780" y="160" class="word" text-anchor="middle">N O</text>
+
+                <!-- Alphabet rows -->
+                <text id="txt-am" class="alphabet" text-anchor="middle" letter-spacing="8">
+                    <textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath>
+                </text>
+                <text id="txt-nz" class="alphabet" text-anchor="middle" letter-spacing="8">
+                    <textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath>
+                </text>
+
                 <!-- Numbers -->
-                <text id="txt-num" class="numbers" text-anchor="middle" letter-spacing="10"><textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath></text>
-                
-                <!-- GOOD BYE -->
-                <text class="word goodbye" text-anchor="middle" letter-spacing="5">
+                <text id="txt-num" class="numbers" text-anchor="middle" letter-spacing="12">
+                    <textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath>
+                </text>
+
+                <!-- Goodbye -->
+                <text id="word-GOODBYE" class="word" text-anchor="middle" letter-spacing="5">
                     <textPath href="#curveGoodbye" startOffset="50%">G O O D B Y E</textPath>
                 </text>
             </g>
 
-            <!-- Spirit Glow Spotlight — sits above letters, uses screen blend to illuminate them -->
-            <circle id="spirit-glow" cx="500" cy="325" r="110"
-                fill="url(#spirit-light)"
-                style="mix-blend-mode: screen; opacity: 0; pointer-events: none;"/>
-        </svg>
+            <!-- Glow / highlight overlay layer (built by JS) -->
+            <g id="letter-glows" pointer-events="none"></g>
 
-        <!-- Planchette Element -->
-        <div id="planchette">
-            <svg viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <pattern id="planchette-wood" patternUnits="userSpaceOnUse" width="400" height="400">
-                        <image href="wood_bg.png" x="-100" y="-100" width="500" height="500" preserveAspectRatio="xMidYMid slice" />
-                    </pattern>
-                    <filter id="shadow">
-                        <feDropShadow dx="0" dy="15" stdDeviation="15" flood-color="#000" flood-opacity="0.9"/>
-                    </filter>
-                    <filter id="hole-glow">
-                        <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ffcc66" flood-opacity="0.8"/>
-                    </filter>
-                    <mask id="hole-mask">
-                        <rect width="200" height="250" fill="white" />
-                        <circle cx="100" cy="180" r="35" fill="black" />
-                    </mask>
-                </defs>
-                
-                <!-- Planchette Body -->
-                <path class="planchette-shape" filter="url(#shadow)" mask="url(#hole-mask)" d="M 100 10 C 150 150, 190 200, 180 240 C 170 250, 30 250, 20 240 C 10 200, 50 150, 100 10 Z" fill="url(#planchette-wood)" stroke="#1a0f05" stroke-width="3"/>
-                
-                <!-- Inner Window (Hole) Borders -->
-                <circle cx="100" cy="180" r="35" fill="transparent" stroke="#1a0f05" stroke-width="4" filter="url(#hole-glow)"/>
-                <circle cx="100" cy="180" r="38" fill="transparent" stroke="rgba(0,0,0,0.8)" stroke-width="2"/>
-                
-                <!-- Decorative lines -->
-                <path d="M 100 30 L 100 120 M 70 80 L 130 80" stroke="#1a0f05" stroke-width="2" fill="transparent" opacity="0.3"/>
-            </svg>
-        </div>
-    </div>
-    
-    <div style="text-align: center; color: rgba(255,255,255,0.3); font-family: monospace; margin-top: 10px;">
+            <!-- Planchette (NOW INSIDE SVG) -->
+            <g id="planchette" transform="translate(500, 400)">
+            <defs>
+                <pattern id="planchette-wood" patternUnits="userSpaceOnUse" width="400" height="400">
+                    <image href="wood_bg.png" x="-100" y="-100" width="500" height="500" preserveAspectRatio="xMidYMid slice" />
+                </pattern>
+                <filter id="shadow">
+                    <feDropShadow dx="0" dy="15" stdDeviation="15" flood-color="#000" flood-opacity="0.9"/>
+                </filter>
+                <filter id="hole-glow">
+                    <feDropShadow dx="0" dy="0" stdDeviation="9" flood-color="#ffcc66" flood-opacity="0.95"/>
+                </filter>
+                <mask id="hole-mask">
+                    <rect x="-100" y="-125" width="200" height="250" fill="white"/>
+                    <circle cx="0" cy="55" r="35" fill="black"/>
+                </mask>
+            </defs>
+            <!-- Body (Centered at 0,0) -->
+            <path filter="url(#shadow)" mask="url(#hole-mask)"
+                  d="M0 -115 C50 25,90 75,80 115 C70 125,-70 125,-80 115 C-90 75,-50 25,0 -115 Z"
+                  fill="url(#planchette-wood)" stroke="#1a0f05" stroke-width="3"/>
+            <!-- Viewing hole ring -->
+            <circle class="hole-ring" cx="0" cy="55" r="35"
+                    fill="transparent" stroke="#1a0f05" stroke-width="4"
+                    filter="url(#hole-glow)"/>
+            <circle cx="0" cy="55" r="38"
+                    fill="transparent" stroke="rgba(0,0,0,0.8)" stroke-width="2"/>
+            <!-- Decorative cross -->
+            <path d="M0 -95L0 -5 M-30 -45L30 -45"
+                  stroke="#1a0f05" stroke-width="2" fill="transparent" opacity="0.3"/>
+        </g>
+    </svg>
+</div>
+
+    <div id="room-code-wrap">
         <span id="room-code">Generating Room Code...</span>
     </div>
 
-    <!-- Info Button & Modal -->
+    <!-- Info button -->
     <div class="info-btn" onclick="openRules()">i</div>
 
+    <!-- Rules modal -->
     <div id="rulesModal" class="rules-modal">
         <div class="rules-content">
             <span class="close-rules" onclick="closeRules()">&times;</span>
@@ -589,524 +618,496 @@
                 <li>Never ask the board when or how you are going to die. Some questions are not meant to be answered.</li>
                 <li>Always be respectful. Do not mock or provoke anything that comes through to communicate.</li>
                 <li>If the planchette swoops to the four corners of the board, a malevolent spirit has made contact. Close the session immediately.</li>
-                <li>If the planchette begins to count down through the numbers or the alphabet backwards, quickly end the session.</li>
+                <li>If the planchette begins counting down through numbers or the alphabet backwards, quickly end the session.</li>
                 <li>Always say "Goodbye" at the end of every session, otherwise the doorway remains perpetually open.</li>
             </ul>
         </div>
     </div>
 
-    <!-- Initialization Modal for Audio Context -->
+    <!-- Begin ritual overlay -->
     <div id="ritual-overlay">
         <h1>THE SEANCE AWAITS</h1>
-        <p>To establish a connection with the other side, the board must detect the spiritual frequencies in your environment. Please allow access when prompted.</p>
-        <button class="begin-btn" onclick="startRitual()">BEGIN RITUAL</button>
+        <p>To establish a connection with the other side, the board must detect the spiritual
+           frequencies in your environment. Please allow access when prompted.</p>
+        <button id="ritual-button" class="begin-btn" onclick="startRitual()">BEGIN RITUAL</button>
     </div>
 
     <div id="message-display"></div>
 
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
-        const roomPin = Math.floor(1000 + Math.random() * 9000).toString();
+    /* ═══════════════════════════════════════════════════════════
+       SOCKET.IO
+    ═══════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════
+       RITUAL START (Global)
+    ═══════════════════════════════════════════════════════════ */
+    window.startRitual = async () => {
+        const overlay = document.getElementById('ritual-overlay');
+        if (overlay) {
+            overlay.style.transition = 'opacity 0.5s ease';
+            overlay.style.opacity = '0';
+            overlay.style.pointerEvents = 'none';
+            setTimeout(() => { overlay.style.display = 'none'; }, 500);
+        }
         
-        // Connect to the server
-        const socket = io();
+        try {
+            localAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            if (peerConnection?.remoteDescription) finalizeAnswer();
+            else if (masterWantsAudio) initiateOffer();
+        } catch(err) { console.log("Ritual silent."); }
+    };
 
-        socket.on('connect', () => {
-            document.getElementById('room-code').innerText = `Room Code: ${roomPin} (Connected to Custom Server)`;
-            socket.emit('create_room', roomPin);
+    const roomPin = Math.floor(1000 + Math.random() * 9000).toString();
+    const socket  = io(window.location.origin, {
+        reconnection: true,
+        reconnectionAttempts: 10,
+        transports: ['websocket', 'polling']
+    });
+
+    socket.on('connect',    () => { document.getElementById('room-code').innerText = `Room: ${roomPin} ✦ Connected`; socket.emit('create_room', roomPin); });
+    socket.on('disconnect', () => { document.getElementById('room-code').innerText = 'Connection Lost'; });
+    setInterval(() => { if (socket.connected) socket.emit('create_room', roomPin); }, 30000);
+
+    /* ═══════════════════════════════════════════════════════════
+       PARTICLE SYSTEM
+    ═══════════════════════════════════════════════════════════ */
+    const pCanvas = document.getElementById('particle-canvas');
+    const pCtx    = pCanvas.getContext('2d');
+    let   particles = [];
+
+    function resizeParticles() {
+        const r = document.getElementById('board-container').getBoundingClientRect();
+        pCanvas.width  = r.width;
+        pCanvas.height = r.height;
+    }
+
+    function spawnParticle() {
+        particles.push({
+            x:     Math.random() * pCanvas.width,
+            y:     pCanvas.height + 5,
+            vx:    (Math.random() - 0.5) * 0.5,
+            vy:    -(Math.random() * 0.35 + 0.1),
+            r:     Math.random() * 2 + 0.5,
+            alpha: Math.random() * 0.4 + 0.05,
+            life:  1.0,
+            decay: Math.random() * 0.004 + 0.001
+        });
+    }
+
+    function animateParticles() {
+        pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+        if (Math.random() < 0.3) spawnParticle();
+        particles = particles.filter(p => p.life > 0);
+        particles.forEach(p => {
+            p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+            pCtx.save();
+            pCtx.globalAlpha = p.alpha * p.life;
+            pCtx.beginPath();
+            pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            pCtx.fillStyle = 'rgba(255,220,150,1)';
+            pCtx.fill();
+            pCtx.restore();
+        });
+        requestAnimationFrame(animateParticles);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MAIN BOARD LOGIC
+    ═══════════════════════════════════════════════════════════ */
+    document.addEventListener('DOMContentLoaded', () => {
+        resizeParticles();
+        animateParticles();
+        window.addEventListener('resize', () => { resizeParticles(); if (!autoMode && !isDragging) initPos(); });
+
+        const planchette = document.getElementById('planchette');
+        const container  = document.getElementById('board-container');
+        const msgDisplay = document.getElementById('message-display');
+
+        let isDragging = false, autoMode = false, liveMode = false, activeMoveTimeout = null;
+        let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+
+        /* ── PLANCHETTE HOLE GEOMETRY ───────────────────────────────
+         * Hole center is at y=55 relative to planchette center (0,0)
+         * ─────────────────────────────────────────────────────── */
+        const HOLE_OFFSET_Y = 55;
+        const AUTO_MOVE_MS = 7000;
+
+        /* Init / reset planchette to center */
+        const initPos = () => {
+            planchette.classList.add('auto-move');
+            planchette.setAttribute('transform', `translate(500, 420) rotate(0)`);
+            setTimeout(() => { if (!autoMode) planchette.classList.remove('auto-move'); }, 800);
+            msgDisplay.textContent = '';
+            clearHighlight();
+        };
+        setTimeout(initPos, 200);
+
+        /* ── DRAG ───────────────────────────────────────────────── */
+        /* ── DRAG (Optimized for SVG) ────────────────────────── */
+        const onPointerDown = e => {
+            if (autoMode) return;
+            isDragging = true;
+            planchette.style.transition = 'none';
+        };
+
+        const onPointerMove = e => {
+            if (!isDragging) return;
+            const pt = container.createSVGPoint();
+            const cx = e.clientX ?? e.touches?.[0].clientX;
+            const cy = e.clientY ?? e.touches?.[0].clientY;
+            pt.x = cx; pt.y = cy;
+            const svgP = pt.matrixTransform(container.getScreenCTM().inverse());
+            
+            planchette.setAttribute('transform', `translate(${svgP.x}, ${svgP.y}) rotate(0)`);
+            checkNearestLetter(svgP.x, svgP.y);
+        };
+
+        const onPointerUp = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            planchette.style.transition = 'transform 0.4s ease-out';
+        };
+
+        planchette.addEventListener('mousedown',  onPointerDown);
+        document.addEventListener('mousemove',    onPointerMove);
+        document.addEventListener('mouseup',      onPointerUp);
+        planchette.addEventListener('touchstart', onPointerDown, {passive:false});
+        document.addEventListener('touchmove',    onPointerMove, {passive:false});
+        document.addEventListener('touchend',     onPointerUp);
+
+        /* ── COORDINATE MAP ─────────────────────────────────────── */
+        // targets[char] = { x, y } in SVG viewBox space — this is where the HOLE should land
+        let targets = {
+            YES:     { x: 215, y: 125 },
+            NO:      { x: 785, y: 125 },
+            GOODBYE: { x: 500, y: 545 }
+        };
+
+        const getPathPoint = (id, pct) => {
+            const p = document.getElementById(id);
+            if (!p) return {x:0,y:0};
+            return p.getPointAtLength(p.getTotalLength() * pct);
+        };
+
+        /* A–N (14 chars) — re-calibrated for perfect center alignment */
+        'ABCDEFGHIJKLMN'.split('').forEach((c, i) => {
+            const pt = getPathPoint('curveAM', 0.08 + 0.84/13 * i);
+            targets[c] = { x: pt.x, y: pt.y - 22 };
+        });
+        /* O–Z (12 chars) */
+        'OPQRSTUVWXYZ'.split('').forEach((c, i) => {
+            const pt = getPathPoint('curveNZ', 0.12 + 0.76/11 * i);
+            targets[c] = { x: pt.x, y: pt.y - 22 };
+        });
+        /* 1–0 (10 digits) */
+        '1234567890'.split('').forEach((c, i) => {
+            const pt = getPathPoint('line10', 0.1 + 0.8/9 * i);
+            targets[c] = { x: pt.x, y: pt.y - 18 };
         });
 
-        // 💓 Heartbeat: Re-register with the registry periodically in case of server restart
-        setInterval(() => {
-            if (socket.connected) {
-                socket.emit('create_room', roomPin);
+        /* ── MOVE PLANCHETTE SO ITS HOLE LANDS ON (svgX, svgY) ── */
+        /* ── MOVE PLANCHETTE (SVG Internal Coordinates) ─────── */
+        const moveToTarget = (svgX, svgY, onComplete) => {
+            clearHighlight();
+            planchette.classList.add('auto-move');
+            
+            // Calculate planchette center so HOLE lands on target
+            const targetX = svgX;
+            const targetY = svgY - HOLE_OFFSET_Y;
+
+            planchette.setAttribute('transform', `translate(${targetX}, ${targetY}) rotate(${(Math.random()-0.5)*3})`);
+
+            if (onComplete) setTimeout(onComplete, AUTO_MOVE_MS);
+        };
+
+        /* ── LETTER GLOW HIGHLIGHT SYSTEM ───────────────────────── */
+        const glowLayer = document.getElementById('letter-glows');
+        const glowCircles = {};
+        let   currentHighlight = null;
+
+        function buildGlows() {
+            Object.entries(targets).forEach(([ch, t]) => {
+                const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+                c.setAttribute('cx', t.x);
+                c.setAttribute('cy', t.y);
+                c.setAttribute('r',  ch.length > 1 ? 50 : 30);
+                c.setAttribute('fill', 'rgba(255,220,80,0)');
+                c.style.transition = 'fill 0.35s, r 0.35s';
+                c.dataset.ch = ch;
+                glowLayer.appendChild(c);
+                glowCircles[ch] = c;
+            });
+        }
+        buildGlows();
+
+        function highlightLetter(ch) {
+            if (currentHighlight === ch) return;
+            clearHighlight();
+            currentHighlight = ch;
+
+            /* Glow circle — subtle flicker */
+            const gc = glowCircles[ch];
+            if (gc) {
+                gc.setAttribute('fill', ch.length > 1 ? 'rgba(255,200,60,0.15)' : 'rgba(255,220,80,0.2)');
+                gc.setAttribute('r',    ch.length > 1 ? 65 : 45);
+                gc.setAttribute('filter', 'url(#letter-glow)');
             }
-        }, 30000);
 
-        socket.on('disconnect', () => {
-            document.getElementById('room-code').innerText = `Connection Lost / Server Offline`;
-        });
+            /* Word elements */
+            const wordEl = document.getElementById('word-' + ch);
+            if (wordEl) wordEl.classList.add('lit');
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const planchette = document.getElementById('planchette');
-            const container = document.getElementById('board-container');
-            const msgDisplay = document.getElementById('message-display');
-            const svgBoard = document.getElementById('ouija-board');
+            /* Row glow for single chars */
+            if (ch.length === 1) {
+                if ('ABCDEFGHIJKLMN'.includes(ch)) document.getElementById('txt-am').style.filter = 'drop-shadow(0 0 4px rgba(255,220,50,0.6))';
+                if ('OPQRSTUVWXYZ'.includes(ch))   document.getElementById('txt-nz').style.filter = 'drop-shadow(0 0 4px rgba(255,220,50,0.6))';
+                if ('1234567890'.includes(ch))     document.getElementById('txt-num').style.filter = 'drop-shadow(0 0 4px rgba(255,220,50,0.6))';
+            }
+        }
 
-            let isDragging = false;
-            let autoMode = false;
-            let liveMode = false;
-            let activeMoveTimeout = null;
+        function clearHighlight() {
+            currentHighlight = null;
+            Object.values(glowCircles).forEach(c => {
+                c.setAttribute('fill', 'rgba(255,220,80,0)');
+                c.setAttribute('r',    c.dataset.ch.length > 1 ? 50 : 30);
+                c.removeAttribute('filter');
+            });
+            document.querySelectorAll('.word.lit').forEach(el => el.classList.remove('lit'));
+            ['txt-am','txt-nz','txt-num'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.filter = '';
+            });
+        }
 
-            // Coordinates cache
-            let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
-
-            // Reset Planchette to center gracefully
-            const spiritGlow = document.getElementById('spirit-glow');
-
-            const initPos = () => {
-                const rect = container.getBoundingClientRect();
-                planchette.classList.add('auto-move');
-                planchette.style.left = `${rect.width / 2}px`;
-                planchette.style.top = `${rect.height * 0.58}px`;
-                // translate(-50%, -72%) so the eye/hole (at 72% of planchette height) lands on the target
-                planchette.style.transform = `translate(-50%, -72%) rotate(0deg)`;
-
-                // Fade out the glow when idle
-                spiritGlow.classList.remove('live-glow');
-                spiritGlow.setAttribute('opacity', '0');
-                
-                setTimeout(() => {
-                    if(!autoMode) {
-                        planchette.classList.remove('auto-move');
-                    }
-                }, 800);
-                
-                msgDisplay.textContent = "";
-            };
-
-            setTimeout(initPos, 200);
-
-            // Grab Planchette
-            const onPointerDown = (e) => {
-                if(autoMode) return;
-                isDragging = true;
-                planchette.style.transition = 'none'; // remove transition for smooth dragging
-                
-                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-                
-                startX = clientX;
-                startY = clientY;
-                
-                initialLeft = parseFloat(planchette.style.left) || container.clientWidth / 2;
-                initialTop = parseFloat(planchette.style.top) || container.clientHeight / 2;
-
-                e.preventDefault();
-            };
-
-            // Drag Planchette
-            const onPointerMove = (e) => {
-                if (!isDragging) return;
-                
-                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-                
-                const dx = clientX - startX;
-                const dy = clientY - startY;
-                
-                let newLeft = initialLeft + dx;
-                let newTop = initialTop + dy;
-                
-                const pRect = planchette.getBoundingClientRect();
-                const cRect = container.getBoundingClientRect();
-                
-                // Boundaries
-                if(newLeft < pRect.width/2) newLeft = pRect.width/2;
-                if(newLeft > cRect.width - pRect.width/2) newLeft = cRect.width - pRect.width/2;
-                if(newTop < pRect.height/2) newTop = pRect.height/2;
-                if(newTop > cRect.height - pRect.height/2) newTop = cRect.height - pRect.height/2;
-                
-                // Rotational effect based on lateral motion
-                const rotation = (dx * 0.05);
-                
-                planchette.style.left = `${newLeft}px`;
-                planchette.style.top = `${newTop}px`;
-                // Keep hole (72% height) as the reference point while dragging
-                planchette.style.transform = `translate(-50%, -72%) rotate(${rotation}deg)`;
-
-                // Move the spirit glow to match drag position (convert px to SVG viewBox coords)
-                const cRect2 = container.getBoundingClientRect();
-                const glowSvgX = (newLeft / cRect2.width) * 1000;
-                const glowSvgY = (newTop / cRect2.height) * 650;
-                spiritGlow.setAttribute('cx', glowSvgX);
-                spiritGlow.setAttribute('cy', glowSvgY);
-                spiritGlow.setAttribute('opacity', '0.85');
-                spiritGlow.classList.add('live-glow');
-            };
-
-            // Release Planchette
-            const onPointerUp = () => {
-                if(isDragging) {
-                    isDragging = false;
-                    planchette.style.transition = 'transform 0.4s ease-out';
-                    planchette.style.transform = `translate(-50%, -72%) rotate(0deg)`;
-                }
-            };
-
-            planchette.addEventListener('mousedown', onPointerDown);
-            document.addEventListener('mousemove', onPointerMove);
-            document.addEventListener('mouseup', onPointerUp);
-
-            planchette.addEventListener('touchstart', onPointerDown, {passive: false});
-            document.addEventListener('touchmove', onPointerMove, {passive: false});
-            document.addEventListener('touchend', onPointerUp);
-
-            // Mathematical Mapping of Letters to inner SVG viewBox (1000x650)
-            let targets = {
-                'YES': {x: 215, y: 125},
-                'NO': {x: 785, y: 125},
-                'GOODBYE': {x: 500, y: 550}
-            };
+        /* Check if hole is near any letter (Manual Move) */
+        function checkNearestLetter(svgX, svgY) {
+            // Hole is offset from planchette center
+            const holeX = svgX;
+            const holeY = svgY + HOLE_OFFSET_Y;
             
-            // Function to calculate exact point on an SVG path safely
-            const getPathPoint = (pathId, percentage) => {
-                const path = document.getElementById(pathId);
-                if(!path) return {x:0, y:0};
-                const length = path.getTotalLength();
-                return path.getPointAtLength(length * percentage);
-            };
-
-            // A-N Mapping (14 characters)
-            // With translate(-50%, -72%), the hole/eye lands at the given (x,y).
-            // Offset y by -10 from path baseline to hit the visual letter center.
-            const amArr = "ABCDEFGHIJKLMN".split("");
-            amArr.forEach((c, i) => {
-                let pct = 0.08 + (0.84 / 13) * i;
-                let pt = getPathPoint('curveAM', pct);
-                targets[c] = {x: pt.x, y: pt.y - 12};
+            let closest = null, minD = 50;
+            Object.entries(targets).forEach(([ch, t]) => {
+                const d = Math.hypot(holeX - t.x, holeY - t.y);
+                if (d < minD) { minD = d; closest = ch; }
             });
+            closest ? highlightLetter(closest) : clearHighlight();
+        }
 
-            const nzArr = "OPQRSTUVWXYZ".split("");
-            nzArr.forEach((c, i) => {
-                let pct = 0.12 + (0.76 / 11) * i;
-                let pt = getPathPoint('curveNZ', pct);
-                targets[c] = {x: pt.x, y: pt.y - 12};
-            });
-            
-            const numArr = "1234567890".split("");
-            numArr.forEach((c, i) => {
-                let pct = 0.08 + (0.84 / 9) * i;
-                let pt = getPathPoint('line10', pct);
-                targets[c] = {x: pt.x, y: pt.y - 8};
-            });
 
-            // Animate Planchette to Target
-            const moveToTarget = (svgX, svgY) => {
-                planchette.classList.add('auto-move');
-                spiritGlow.classList.remove('live-glow');
+        /* ── SPELLING ROUTINE ───────────────────────────────────── */
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-                // Pure percentage mapping: svgX/1000*100 and svgY/650*100
-                let targetLeft = (svgX / 10);
-                let targetTop  = (svgY / 6.5);
+        const spellMessage = async msg => {
+            autoMode = true;
+            msgDisplay.textContent = '';
+            const words = msg.toUpperCase().split(' ');
 
-                // Organic Jitter (subtle)
-                targetLeft += (Math.random() - 0.5) * 0.5;
-                targetTop  += (Math.random() - 0.5) * 0.5;
-                let rotation = (Math.random() - 0.5) * 6;
-
-                planchette.style.left = `${targetLeft}%`;
-                planchette.style.top  = `${targetTop}%`;
-                // translate(-50%, -72%) so the hole (at 72% of planchette height) lands exactly on target
-                planchette.style.transform = `translate(-50%, -72%) rotate(${rotation}deg)`;
-
-                // Move spirit glow to the target letter — uses SVG coordinate space
-                spiritGlow.setAttribute('cx', svgX);
-                spiritGlow.setAttribute('cy', svgY);
-                spiritGlow.setAttribute('opacity', '0.9');
-            };
-
-            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
-            // Spelling Routine
-            const spellMessage = async (msg) => {
-                autoMode = true;
-                msgDisplay.textContent = "";
-                const words = msg.toUpperCase().split(' ');
-                
-                for (let word of words) {
-                    if (targets[word]) { // Known solid words
-                        moveToTarget(targets[word].x, targets[word].y);
-                        await sleep(1500);
-                        msgDisplay.textContent += word;
-                    } else {
-                        for (let char of word) {
-                            if (targets[char]) {
-                                moveToTarget(targets[char].x, targets[char].y);
-                                // Wait for character spelling
-                                await sleep(1600);
-                                msgDisplay.textContent += char;
-                            }
+            for (const word of words) {
+                if (targets[word]) {
+                    /* Move first, glow ONLY after planchette arrives and settles */
+                    moveToTarget(targets[word].x, targets[word].y);
+                    await sleep(AUTO_MOVE_MS + 500);    // 7.5s wait for 7s move
+                    highlightLetter(word);
+                    await sleep(1000);                  // respect the letter
+                    clearHighlight();
+                    msgDisplay.textContent += word;
+                } else {
+                    for (const ch of word) {
+                        if (targets[ch]) {
+                            moveToTarget(targets[ch].x, targets[ch].y);
+                            await sleep(AUTO_MOVE_MS + 500); // 7.5s wait for 7s move
+                            highlightLetter(ch);
+                            await sleep(800);                // respect the letter
+                            clearHighlight();
+                            msgDisplay.textContent += ch;
                         }
                     }
-                    msgDisplay.textContent += " ";
-                    await sleep(1000);
                 }
+                msgDisplay.textContent += ' ';
+                await sleep(600);
+            }
+
+            if (msg.toUpperCase() !== 'GOODBYE') {
+                await sleep(400);
+                moveToTarget(targets.GOODBYE.x, targets.GOODBYE.y);
+                await sleep(AUTO_MOVE_MS);
+                highlightLetter('GOODBYE');
+            }
+
+            activeMoveTimeout = setTimeout(() => {
+                autoMode = false;
+                clearHighlight();
+                initPos();
+            }, 1800);
+        };
+
+        /* ── SOCKET LISTENERS ───────────────────────────────────── */
+        socket.on('board_live_pos', data => {
+            if (data?.active) {
+                autoMode = false; liveMode = true;
+                clearTimeout(activeMoveTimeout);
+                planchette.classList.remove('auto-move');
+                planchette.classList.add('live-move');
                 
-                if (msg !== 'GOODBYE') {
-                    await sleep(1000);
-                    moveToTarget(targets['GOODBYE'].x, targets['GOODBYE'].y);
-                }
+                const x = parseFloat(data.x) * 1000;
+                const y = parseFloat(data.y) * 650;
                 
-                activeMoveTimeout = setTimeout(() => {
-                    autoMode = false;
-                    initPos();
-                }, 2000);
-            };
+                planchette.setAttribute('transform', `translate(${x}, ${y}) rotate(${data.rot||0})`);
+                checkNearestLetter(x, y);
+            } else if (liveMode) {
 
-            // ============================================================== //
-            // CUSTOM SOCKET.IO LISTENERS
-            // ============================================================== //
-            
-            // 1. Live Possession Coordinates Listener
-            socket.on('board_live_pos', (data) => {
-                if (data && data.active) {
-                    autoMode = false;
-                    liveMode = true; 
-                    clearTimeout(activeMoveTimeout);
-                    
-                    planchette.classList.remove('auto-move');
-                    planchette.classList.add('live-move');
-                    planchette.style.transition = ''; // clear any inline transitions
-                    
-                    const cRect = container.getBoundingClientRect();
-                    
-                    // Sanitize coordinates
-                    const x = parseFloat(data.x);
-                    const y = parseFloat(data.y);
-                    if (isNaN(x) || isNaN(y)) return;
-                    
-                    const targetX = x * cRect.width;
-                    const targetY = y * cRect.height;
-                    
-                    planchette.style.left = `${targetX}px`;
-                    planchette.style.top = `${targetY}px`;
-                    planchette.style.transform = `translate(-50%, -72%) rotate(${data.rot || 0}deg)`;
-
-                    // Update spirit glow in SVG coords for live mode
-                    const svgLiveX = (targetX / cRect.width) * 1000;
-                    const svgLiveY = (targetY / cRect.height) * 650;
-                    spiritGlow.classList.add('live-glow');
-                    spiritGlow.setAttribute('cx', svgLiveX);
-                    spiritGlow.setAttribute('cy', svgLiveY);
-                    spiritGlow.setAttribute('opacity', '0.85');
-                } else if (liveMode) {
-                    // Touch released, reset slowly
-                    liveMode = false;
-                    planchette.classList.remove('live-move');
-                    initPos();
-                }
-            });
-
-            // 2. Spell Action Listener
-            socket.on('board_spell', (data) => {
-                if (data && data.text) {
-                    liveMode = false;
-                    spellMessage(data.text);
-                } else if (data && data.reset) {
-                    autoMode = false;
-                    liveMode = false;
-                    clearTimeout(activeMoveTimeout);
-                    initPos();
-                }
-            });
-
-            // 3. WebRTC Audio Signaling Listener
-            socket.on('webrtc_signal', handleSignalingData);
-
-            window.addEventListener('resize', () => {
-                if (!autoMode && !isDragging) {
-                    initPos();
-                }
-            });
-
+                liveMode = false;
+                planchette.classList.remove('live-move');
+                clearHighlight();
+                initPos();
+            }
         });
 
-        // ============================================================== //
-        // WEBRTC & MICROPHONE LOGIC
-        // ============================================================== //
-        let localAudioStream = null;
-        let peerConnection = null;
-        let iceCandidateQueue = [];
-        let masterWantsAudio = false;
+        socket.on('board_spell', data => {
+            if (data?.text) {
+                liveMode = false;
+                spellMessage(data.text);
+            } else if (data?.reset) {
+                autoMode = false; liveMode = false;
+                clearTimeout(activeMoveTimeout);
+                clearHighlight();
+                initPos();
+            }
+        });
 
-        const stunConfig = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' },
-                { urls: 'stun:stun.ekiga.net' },
-                { urls: 'stun:stun.ideasip.com' },
-                { urls: 'stun:stun.schlund.de' },
-                { urls: 'stun:stun.voiparound.com' },
-                { urls: 'stun:stun.voipbuster.com' },
-                { urls: 'stun:stun.voipstunt.com' },
-                { urls: 'stun:stun.voxgratia.org' }
-            ],
-            iceCandidatePoolSize: 10,
-            bundlePolicy: 'max-bundle',
-            rtcpMuxPolicy: 'require'
+        socket.on('webrtc_signal', handleSignalingData);
+    });
+
+    /* ═══════════════════════════════════════════════════════════
+       WEBRTC / MICROPHONE
+    ═══════════════════════════════════════════════════════════ */
+    let localAudioStream = null, peerConnection = null;
+    let iceCandidateQueue = [], masterWantsAudio = false;
+
+    const stunConfig = {
+        iceServers: [
+            {urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},
+            {urls:'stun:stun2.l.google.com:19302'},{urls:'stun:stun.ekiga.net'},
+            {urls:'stun:stun.ideasip.com'},{urls:'stun:stun.schlund.de'},
+            {urls:'stun:stun.voiparound.com'},{urls:'stun:stun.voipbuster.com'},
+            {urls:'stun:stun.voxgratia.org'}
+        ],
+        iceCandidatePoolSize:10, bundlePolicy:'max-bundle', rtcpMuxPolicy:'require'
+    };
+
+    const spiritLog = msg => {
+        const el = document.getElementById('spirit-status');
+        el.style.display = 'block';
+        const d = document.createElement('div');
+        d.textContent = `> ${msg}`;
+        el.appendChild(d);
+        if (el.children.length > 8) el.removeChild(el.firstChild);
+    };
+
+    if (!window.isSecureContext || window.location.protocol === 'file:')
+        document.getElementById('security-warning').style.display = 'block';
+
+    const setupWebRTC = () => {
+        peerConnection?.close();
+        peerConnection = new RTCPeerConnection(stunConfig);
+        iceCandidateQueue = [];
+        peerConnection.onicecandidate = e => {
+            if (e.candidate)
+                socket.emit('webrtc_signal', {pin:roomPin, candidate:e.candidate});
         };
+        if (localAudioStream) syncStreamToPeer();
+    };
 
-        const spiritLog = (msg) => {
-            const el = document.getElementById('spirit-status');
-            el.style.display = 'block';
-            const log = document.createElement('div');
-            log.textContent = `> ${msg}`;
-            el.appendChild(log);
-            if (el.children.length > 8) el.removeChild(el.firstChild);
-        };
+    const syncStreamToPeer = () => {
+        if (!peerConnection||!localAudioStream) return;
+        localAudioStream.getTracks().forEach(t => {
+            if (!peerConnection.getSenders().some(s=>s.track===t))
+                peerConnection.addTrack(t, localAudioStream);
+        });
+    };
 
-        if (!window.isSecureContext || window.location.protocol === 'file:') {
-            document.getElementById('security-warning').style.display = 'block';
+    const initiateOffer = async () => {
+        if (!peerConnection) setupWebRTC();
+        try {
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            socket.emit('webrtc_signal', {pin:roomPin, desc:peerConnection.localDescription});
+        } catch(e) { console.error(e); }
+    };
+
+    const handleSignalingData = async data => {
+        if (data.desc) {
+            spiritLog(`Spirit: ${data.desc.type}`);
+            if (data.desc.type === 'offer') {
+                if (!peerConnection) setupWebRTC();
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.desc));
+                localAudioStream ? finalizeAnswer()
+                    : socket.emit('webrtc_signal', {pin:roomPin, status:'awaiting_ritual'});
+            } else if (data.desc.type === 'answer' && peerConnection) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.desc));
+                spiritLog('Link Verified.');
+            }
+            iceCandidateQueue.forEach(c => peerConnection.addIceCandidate(c).catch(()=>{}));
+            iceCandidateQueue = [];
+        } else if (data.candidate) {
+            peerConnection?.remoteDescription
+                ? await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(()=>{})
+                : iceCandidateQueue.push(new RTCIceCandidate(data.candidate));
+        } else if (data.request_audio) {
+            masterWantsAudio = true;
+            if (localAudioStream) initiateOffer();
         }
+    };
 
-        const setupWebRTC = () => {
-            if (peerConnection) {
-                console.log("[SYS] Closing old spiritual connection...");
-                peerConnection.close();
-            }
-            
-            peerConnection = new RTCPeerConnection(stunConfig);
-            iceCandidateQueue = []; // Reset queue for new connection
-            
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) {
-                    socket.emit('webrtc_signal', {
-                        pin: roomPin,
-                        candidate: event.candidate
-                    });
-                }
-            };
+    const finalizeAnswer = async () => {
+        if (!peerConnection?.remoteDescription) return;
+        syncStreamToPeer();
+        try {
+            const ans = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(ans);
+            socket.emit('webrtc_signal', {pin:roomPin, desc:peerConnection.localDescription});
+        } catch(e) { console.error(e); }
+    };
 
-            peerConnection.oniceconnectionstatechange = () => {
-                console.log(`[SYS] Connection state: ${peerConnection.iceConnectionState}`);
-            };
+    // Bind ritual button for mobile touch
+    const rBtn = document.getElementById('ritual-button');
+    if (rBtn) {
+        rBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRitual(); }, {passive: false});
+        rBtn.addEventListener('click', (e) => { startRitual(); });
+    }
 
-            // Idempotent track addition
-            if (localAudioStream) {
-                syncStreamToPeer();
-            }
-        };
+    function openRules()  { document.getElementById('rulesModal').classList.add('show'); }
+    function closeRules() { document.getElementById('rulesModal').classList.remove('show'); }
 
-        const syncStreamToPeer = () => {
-            if (!peerConnection || !localAudioStream) return;
-            localAudioStream.getTracks().forEach(track => {
-                const senders = peerConnection.getSenders();
-                const alreadyAdded = senders.some(s => s.track === track);
-                if (!alreadyAdded) {
-                    peerConnection.addTrack(track, localAudioStream);
-                    console.log("[SYS] Audio track channeled to peer.");
-                }
-            });
-        };
-
-        const initiateOffer = async () => {
-            if (!peerConnection) setupWebRTC();
-            try {
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-                socket.emit('webrtc_signal', {
-                    pin: roomPin,
-                    desc: peerConnection.localDescription
-                });
-                console.log("[SYS] Sent WebRTC offer to Master.");
-            } catch(e) {
-                console.error("Failed to create offer", e);
-            }
-        };
-
-        const handleSignalingData = async (data) => {
-            if (data.desc) {
-                spiritLog(`Spirit Offer: ${data.desc.type}`);
-                if (data.desc.type === 'offer') {
-                    if (!peerConnection) setupWebRTC();
-                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.desc));
-                    console.log("[SYS] Received WebRTC offer from Master.");
-                    
-                    if (localAudioStream) {
-                        finalizeAnswer();
-                    } else {
-                        spiritLog("Waiting for Ritual...");
-                        console.log("[SYS] Mic not ready. Waiting for Ritual to answer.");
-                        socket.emit('webrtc_signal', { pin: roomPin, status: 'awaiting_ritual' });
-                    }
-                } else if (data.desc.type === 'answer') {
-                    if (peerConnection) {
-                        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.desc));
-                        console.log("[SYS] Spirit link verified. Answer received.");
-                        spiritLog("Link Verified.");
-                    }
-                }
-                
-                iceCandidateQueue.forEach(c => peerConnection.addIceCandidate(c).catch(e=>{}));
-                iceCandidateQueue = [];
-
-            } else if (data.candidate) {
-                if (peerConnection && peerConnection.remoteDescription) {
-                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(e=>{});
-                } else {
-                    iceCandidateQueue.push(new RTCIceCandidate(data.candidate));
-                }
-            } else if (data.request_audio) {
-                spiritLog("Master request audio");
-                masterWantsAudio = true;
-                if (localAudioStream) initiateOffer();
-            }
-        };
-
-        const finalizeAnswer = async () => {
-            try {
-                if (!peerConnection || !peerConnection.remoteDescription) {
-                    console.warn("[SYS] Cannot answer yet - connection not ready.");
-                    return;
-                }
-                
-                // Ensure tracks are added before creating the answer
-                syncStreamToPeer();
-                
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-                socket.emit('webrtc_signal', {
-                    pin: roomPin,
-                    desc: peerConnection.localDescription
-                });
-                console.log("[SYS] Spiritual frequencies aligned. Sending answer.");
-            } catch (e) {
-                console.error("Failed to finalize answer", e);
-            }
-        };
-
-        window.startRitual = async () => {
-            document.getElementById('ritual-overlay').style.display = 'none';
-            try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error("mediaDevices not supported");
-                }
-                localAudioStream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: {
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false,
-                        latency: 0,
-                        channelCount: 1,
-                        sampleRate: 48000
-                    },
-                    video: false 
-                });
-                console.log("[SYS] Ultra-Low Latency Audio captured.");
-                
-                if (peerConnection && peerConnection.remoteDescription) {
-                    finalizeAnswer();
-                } else if (masterWantsAudio) {
-                    initiateOffer();
-                }
-            } catch (err) {
-                console.warn("[SYS] Microphone denied or unavailable. Voice channeling disabled.");
-                alert("Microphone access could not be acquired. You can still use the board.");
-            }
-        };
-
-        // Rules Modal Functions
-        function openRules() {
-            document.getElementById('rulesModal').classList.add('show');
+    // ── Fullscreen API ──
+    window.toggleFullscreen = function() {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            const el = document.documentElement;
+            if (el.requestFullscreen) el.requestFullscreen();
+            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
         }
+    };
 
-        function closeRules() {
-            document.getElementById('rulesModal').classList.remove('show');
+    function syncFS() {
+        const btn = document.getElementById('fs-toggle-btn');
+        const icon = document.getElementById('fs-icon');
+        const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        if (btn && icon) {
+            if (isFull) {
+                icon.className = 'fa-solid fa-compress';
+                btn.querySelector('span').innerText = 'Exit Fullscreen';
+            } else {
+                icon.className = 'fa-solid fa-expand';
+                btn.querySelector('span').innerText = 'Fullscreen';
+            }
         }
+    }
+    document.addEventListener('fullscreenchange', syncFS);
+    document.addEventListener('webkitfullscreenchange', syncFS);
     </script>
 </body>
 </html>
