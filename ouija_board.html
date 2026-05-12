@@ -33,7 +33,7 @@
             background-image: url('wood_bg.png');
             background-size: cover;
             background-position: center;
-            box-shadow: inset 0 0 10vw rgba(0,0,0,0.95), 0 0 5vw rgba(0,0,0,0.8);
+            box-shadow: inset 0 0 10vw rgba(0,0,0,0.85), 0 0 5vw rgba(0,0,0,0.8);
             border: 0.3vmin solid #1a0f05;
             border-radius: 2vmin;
             display: flex;
@@ -60,40 +60,52 @@
         }
 
         .title {
-            font-size: 10vmin;
-            fill: #1a0f05;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: clamp(18px, 8vmin, 72px);
+            fill: #2a1a06;
             font-weight: 900;
             letter-spacing: 3vmin;
-            text-shadow: 0.2vmin 0.2vmin 0px rgba(255,255,255,0.05), -0.1vmin -0.1vmin 0px rgba(0,0,0,0.9);
         }
 
         .word {
-            font-size: 7vmin;
-            fill: #1a0f05;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: clamp(16px, 6vmin, 56px);
+            fill: #2a1a06;
             font-weight: 900;
-            text-shadow: 0.1vmin 0.1vmin 0px rgba(255,255,255,0.05), -0.1vmin -0.1vmin 0px rgba(0,0,0,0.9);
             cursor: pointer;
             transition: fill 0.3s, filter 0.3s;
         }
 
         .word:hover {
-            fill: #ffb84d;
-            filter: drop-shadow(0 0 1vmin rgba(255,184,77,0.8));
+            fill: #c8861a;
+            filter: drop-shadow(0 0 1vmin rgba(200,134,26,0.8));
         }
 
         .alphabet, .numbers {
-            font-size: 6vmin;
-            fill: #1a0f05;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: clamp(12px, 5vmin, 48px);
+            fill: #2e1a07;
             font-weight: 900;
-            stroke: #1a0f05;
-            stroke-width: 0.25vmin;
-            text-shadow: 0.2vmin 0.2vmin 0px rgba(255,255,255,0.05), -0.1vmin -0.1vmin 0px rgba(0,0,0,1);
-            letter-spacing: 0.8vmin;
+            stroke: #1a0f04;
+            stroke-width: 0.15vmin;
+            letter-spacing: 0.5vmin;
+        }
+
+        /* Glow animation for spirit-glow */
+        #spirit-glow {
+            transition: cx 2.5s cubic-bezier(0.4,0,0.2,1),
+                        cy 2.5s cubic-bezier(0.4,0,0.2,1),
+                        opacity 0.6s ease;
+            pointer-events: none;
+        }
+
+        #spirit-glow.live-glow {
+            transition: cx 0.3s ease-out, cy 0.3s ease-out, opacity 0.3s ease;
         }
 
         .icon, .icon path, .icon circle {
-            fill: #1a0f05;
-            stroke: #1a0f05;
+            fill: #2a1a06;
+            stroke: #1a0f04;
             filter: drop-shadow(-0.1vmin -0.1vmin 0px rgba(0,0,0,0.9)) drop-shadow(0.1vmin 0.1vmin 0px rgba(255,255,255,0.05));
         }
 
@@ -101,25 +113,31 @@
             position: absolute;
             width: 15%;
             height: 28%;
-            transform-origin: center center;
+            transform-origin: 50% 72%; /* The eye/hole center is at 72% height */
             z-index: 100;
             pointer-events: auto;
             cursor: grab;
-            filter: drop-shadow(0 2vmin 3vmin rgba(0,0,0,0.8));
-            /* Percentage based movement matching 1000x650 viewBox */
+            filter: drop-shadow(0 2vmin 4vmin rgba(0,0,0,0.9)) drop-shadow(0 0 1vmin rgba(255,200,80,0.08));
+            /* Use translate(-50%, -72%) so the hole (at 72% height) lands on target */
             left: 50%;
             top: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -72%);
         }
 
         #planchette.auto-move {
             transition: left 2.5s cubic-bezier(0.4, 0, 0.2, 1), 
                         top 2.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                        filter 1s ease,
                         transform 2.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         #planchette.live-move {
             transition: left 0.3s ease-out, top 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        #planchette:active {
+            cursor: grabbing;
+            filter: drop-shadow(0 3vmin 5vmin rgba(0,0,0,0.95)) drop-shadow(0 0 2vmin rgba(255,200,80,0.2));
         }
 
         #spirit-mist {
@@ -197,28 +215,46 @@
 
         @media (max-width: 600px) {
             #board-container {
-                width: 98vw;
+                width: 100vw;
                 border: none;
                 border-radius: 0;
             }
             #controls {
-                gap: 10px;
+                gap: 8px;
             }
             #question-input {
-                width: 80%;
+                width: 75%;
+                font-size: 12px;
             }
             button {
-                font-size: 14px;
-                padding: 10px 20px;
+                font-size: 11px;
+                padding: 8px 14px;
+            }
+            .title {
+                font-size: clamp(14px, 7vmin, 40px);
+            }
+            .word {
+                font-size: clamp(13px, 5.5vmin, 36px);
             }
             .alphabet, .numbers {
-                font-size: 4.5vmin;
+                font-size: clamp(10px, 4.2vmin, 32px);
+            }
+            #message-display {
+                font-size: clamp(14px, 4vmin, 28px);
+                bottom: 20px;
             }
         }
 
         @media (orientation: portrait) {
             #board-container {
-                width: 98vw;
+                width: 100vw;
+            }
+            .title {
+                font-size: clamp(14px, 6vmin, 40px);
+                letter-spacing: 2vmin;
+            }
+            .alphabet, .numbers {
+                font-size: clamp(9px, 4vmin, 30px);
             }
         }
 
@@ -448,12 +484,26 @@
                 <path id="curveNZ" d="M 80 480 A 420 100 0 0 1 920 480" fill="transparent" />
                 <path id="line10" d="M 120 580 L 880 580" fill="transparent" />
                 <path id="curveGoodbye" d="M 250 635 A 250 15 0 0 0 750 635" fill="transparent"/>
-                <filter id="glow-text">
-                    <feGaussianBlur stdDeviation="2" result="blur" />
-                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                <!-- Spirit spotlight gradient -->
+                <radialGradient id="spirit-light" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                    <stop offset="0%" stop-color="#ffe8a0" stop-opacity="0.55"/>
+                    <stop offset="45%" stop-color="#ffcc66" stop-opacity="0.25"/>
+                    <stop offset="100%" stop-color="#ffcc66" stop-opacity="0"/>
+                </radialGradient>
+                <!-- Vignette border gradient -->
+                <radialGradient id="board-vignette" cx="50%" cy="50%" r="70%">
+                    <stop offset="0%" stop-color="transparent"/>
+                    <stop offset="100%" stop-color="rgba(0,0,0,0.5)"/>
+                </radialGradient>
+                <filter id="letter-glow">
+                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
                 </filter>
             </defs>
             
+            <!-- Board vignette overlay -->
+            <rect x="0" y="0" width="1000" height="650" fill="url(#board-vignette)" pointer-events="none" opacity="0.6"/>
+
             <g class="board-graphics">
                 <!-- Sun and Moon Settings -->
                 <g class="icon sun" transform="translate(120, 115)">
@@ -472,17 +522,22 @@
                 <text x="780" y="160" class="word no" text-anchor="middle">N O</text>
                 
                 <!-- Alphabet -->
-                <text id="txt-am" class="alphabet" text-anchor="middle" letter-spacing="8"><textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath></text>
-                <text id="txt-nz" class="alphabet" text-anchor="middle" letter-spacing="8"><textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath></text>
+                <text id="txt-am" class="alphabet" text-anchor="middle" letter-spacing="6"><textPath href="#curveAM" startOffset="50%">A B C D E F G H I J K L M N</textPath></text>
+                <text id="txt-nz" class="alphabet" text-anchor="middle" letter-spacing="6"><textPath href="#curveNZ" startOffset="50%">O P Q R S T U V W X Y Z</textPath></text>
                 
                 <!-- Numbers -->
-                <text id="txt-num" class="numbers" text-anchor="middle" letter-spacing="12"><textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath></text>
+                <text id="txt-num" class="numbers" text-anchor="middle" letter-spacing="10"><textPath href="#line10" startOffset="50%">1 2 3 4 5 6 7 8 9 0</textPath></text>
                 
                 <!-- GOOD BYE -->
                 <text class="word goodbye" text-anchor="middle" letter-spacing="5">
                     <textPath href="#curveGoodbye" startOffset="50%">G O O D B Y E</textPath>
                 </text>
             </g>
+
+            <!-- Spirit Glow Spotlight — sits above letters, uses screen blend to illuminate them -->
+            <circle id="spirit-glow" cx="500" cy="325" r="110"
+                fill="url(#spirit-light)"
+                style="mix-blend-mode: screen; opacity: 0; pointer-events: none;"/>
         </svg>
 
         <!-- Planchette Element -->
@@ -587,12 +642,19 @@
             let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
 
             // Reset Planchette to center gracefully
+            const spiritGlow = document.getElementById('spirit-glow');
+
             const initPos = () => {
                 const rect = container.getBoundingClientRect();
                 planchette.classList.add('auto-move');
                 planchette.style.left = `${rect.width / 2}px`;
-                planchette.style.top = `${rect.height / 2 + 80}px`;
-                planchette.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+                planchette.style.top = `${rect.height * 0.58}px`;
+                // translate(-50%, -72%) so the eye/hole (at 72% of planchette height) lands on the target
+                planchette.style.transform = `translate(-50%, -72%) rotate(0deg)`;
+
+                // Fade out the glow when idle
+                spiritGlow.classList.remove('live-glow');
+                spiritGlow.setAttribute('opacity', '0');
                 
                 setTimeout(() => {
                     if(!autoMode) {
@@ -650,7 +712,17 @@
                 
                 planchette.style.left = `${newLeft}px`;
                 planchette.style.top = `${newTop}px`;
-                planchette.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+                // Keep hole (72% height) as the reference point while dragging
+                planchette.style.transform = `translate(-50%, -72%) rotate(${rotation}deg)`;
+
+                // Move the spirit glow to match drag position (convert px to SVG viewBox coords)
+                const cRect2 = container.getBoundingClientRect();
+                const glowSvgX = (newLeft / cRect2.width) * 1000;
+                const glowSvgY = (newTop / cRect2.height) * 650;
+                spiritGlow.setAttribute('cx', glowSvgX);
+                spiritGlow.setAttribute('cy', glowSvgY);
+                spiritGlow.setAttribute('opacity', '0.85');
+                spiritGlow.classList.add('live-glow');
             };
 
             // Release Planchette
@@ -658,7 +730,7 @@
                 if(isDragging) {
                     isDragging = false;
                     planchette.style.transition = 'transform 0.4s ease-out';
-                    planchette.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+                    planchette.style.transform = `translate(-50%, -72%) rotate(0deg)`;
                 }
             };
 
@@ -686,43 +758,52 @@
             };
 
             // A-N Mapping (14 characters)
+            // With translate(-50%, -72%), the hole/eye lands at the given (x,y).
+            // Offset y by -10 from path baseline to hit the visual letter center.
             const amArr = "ABCDEFGHIJKLMN".split("");
             amArr.forEach((c, i) => {
-                let pct = 0.08 + (0.84 / 13) * i; 
+                let pct = 0.08 + (0.84 / 13) * i;
                 let pt = getPathPoint('curveAM', pct);
-                targets[c] = {x: pt.x, y: pt.y - 45}; 
+                targets[c] = {x: pt.x, y: pt.y - 12};
             });
 
             const nzArr = "OPQRSTUVWXYZ".split("");
             nzArr.forEach((c, i) => {
                 let pct = 0.12 + (0.76 / 11) * i;
                 let pt = getPathPoint('curveNZ', pct);
-                targets[c] = {x: pt.x, y: pt.y - 45};
+                targets[c] = {x: pt.x, y: pt.y - 12};
             });
             
             const numArr = "1234567890".split("");
             numArr.forEach((c, i) => {
-                let pct = 0.1 + (0.8 / 9) * i; 
+                let pct = 0.08 + (0.84 / 9) * i;
                 let pt = getPathPoint('line10', pct);
-                targets[c] = {x: pt.x, y: pt.y - 45};
+                targets[c] = {x: pt.x, y: pt.y - 8};
             });
 
             // Animate Planchette to Target
             const moveToTarget = (svgX, svgY) => {
                 planchette.classList.add('auto-move');
-                
-                // Pure percentage mapping to match 1000x650 coordinate system
-                let targetLeft = (svgX / 10); // 1000 / 10 = 100%
-                let targetTop = (svgY / 6.5); // 650 / 6.5 = 100%
+                spiritGlow.classList.remove('live-glow');
 
-                // Organic Jitter (reduced)
-                targetLeft += (Math.random() - 0.5) * 0.4;
-                targetTop += (Math.random() - 0.5) * 0.4;
-                let rotation = (Math.random() - 0.5) * 8;
+                // Pure percentage mapping: svgX/1000*100 and svgY/650*100
+                let targetLeft = (svgX / 10);
+                let targetTop  = (svgY / 6.5);
+
+                // Organic Jitter (subtle)
+                targetLeft += (Math.random() - 0.5) * 0.5;
+                targetTop  += (Math.random() - 0.5) * 0.5;
+                let rotation = (Math.random() - 0.5) * 6;
 
                 planchette.style.left = `${targetLeft}%`;
-                planchette.style.top = `${targetTop}%`;
-                planchette.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+                planchette.style.top  = `${targetTop}%`;
+                // translate(-50%, -72%) so the hole (at 72% of planchette height) lands exactly on target
+                planchette.style.transform = `translate(-50%, -72%) rotate(${rotation}deg)`;
+
+                // Move spirit glow to the target letter — uses SVG coordinate space
+                spiritGlow.setAttribute('cx', svgX);
+                spiritGlow.setAttribute('cy', svgY);
+                spiritGlow.setAttribute('opacity', '0.9');
             };
 
             const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -790,7 +871,15 @@
                     
                     planchette.style.left = `${targetX}px`;
                     planchette.style.top = `${targetY}px`;
-                    planchette.style.transform = `translate(-50%, -50%) rotate(${data.rot || 0}deg)`;
+                    planchette.style.transform = `translate(-50%, -72%) rotate(${data.rot || 0}deg)`;
+
+                    // Update spirit glow in SVG coords for live mode
+                    const svgLiveX = (targetX / cRect.width) * 1000;
+                    const svgLiveY = (targetY / cRect.height) * 650;
+                    spiritGlow.classList.add('live-glow');
+                    spiritGlow.setAttribute('cx', svgLiveX);
+                    spiritGlow.setAttribute('cy', svgLiveY);
+                    spiritGlow.setAttribute('opacity', '0.85');
                 } else if (liveMode) {
                     // Touch released, reset slowly
                     liveMode = false;
